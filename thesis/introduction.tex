@@ -1,0 +1,71 @@
+\chapter{Introduction}
+\label{ch-introduction}
+
+Modelling complicated natural phenomena using mathematical abstractions is a common practice in modern scientific research and real-world applications.
+A successful model of a phenomenon helps us interpret its key features while omits extraneous details \citep{babtie2014topological}.
+For various dynamic processes underlying a broad range of fields including chemistry, physics, biology, economics, meteorology, etc., one convenient and useful abstraction is to describe them as a set of \emph{ordinary differential equations (ODEs)} or \emph{stochastic (ordinary) differential equations (SDEs)} 
+    \citep{ellner2011dynamic, gardiner2009stochastic}, which are also called  \emph{deterministic dynamical systems} and \emph{random dynamical systems} respectively.
+
+Using the term \emph{dynamical system} to refer to the above two systems in general, this work addresses the topical yet challenging problem of statistical inference of the states and parameters of dynamical systems given noisy, sparse or even incomplete states observation. 
+By extending the state-of-art approaches that combine the techniques of Gaussian process regression, gradient matching, and variational inference, the aim is to build an inference pipeline that operates efficiently, predicts accurately and scales to large systems.
+
+\section{Motivation}
+\label{sec-motivation}
+
+To understand the importance of the problem, it is possible to find numerous alternative models that describe the observations unless there is enough domain expertise to designate a specific model \citep{babtie2014topological}.
+In order to select a good candidate, each of the alternatives must be trained using the observations, and then the results will be evaluated according to certain criteria.
+Even if the general underlying process is known, the parameters that control the dynamics of the system still need to be inferred from the observations. 
+It is therefore critical for the data fitting process to be accurate and robust.
+Meanwhile, the procedure should also be performant so that complex models can be trained within reasonable time constraints.
+For more concrete illustration of modelling using dynamical systems, consider the following two examples.
+
+\paragraph*{Deterministic dynamical systems}
+One essential task in system biology is to compare and select an appropriate model to characterize a biochemical system, e.g.\ protein signalling transduction pathway \citep{vyshemirsky2007bayesian}.
+Typically, the structure of the system can be viewed as a network of biochemical reactions, which can be formally described by a group of nonlinear ODEs; the transitions among the network components, e.g.\ protein spieces, are determined by a set of kinetic parameters \citep{macdonald2015gradient}.
+During experiments, only concentrations on the species over a time span are observed.
+Therefore, inference of the true parameter values or even the \emph{a posteriori} distributions for different models given the experimental data is of crucial importance for model selection purposes.
+
+\paragraph*{Random dynamical systems}
+In reality, it is often that the mathematical model is not able to capture all the characteristics of the phenomenon.
+If we allow some randomness inside a deterministic dynamical system, we would get a random dynamical system \citep{oksendal2013stochastic}.
+An example where random dynamical systems have a long history of application is weather forecasting, where the continuous evolution of the atmosphere is described by discretized quantities like pressure, temperature, wind speed, etc., measured at fixed intervals \citep{archambeau2007gaussian}.
+Therefore, it is reasonable to model the rest of the unknown dynamics as the noise process within the SDEs.
+For such systems, useful prediction depends not only on the realistic modelling of the atmospheric environment, but also on the precise estimation of the initial conditions \citep{kalnay2003atmospheric}, due to the high sensitivity of future states on the initial conditions that is also known as the famous \emph{butterfly effect} \citep{lorenz2000butterfly}.
+
+To summarize, the relative importance of state versus parameter estimation varies, depending on the specific application.
+State estimation is more important for short-term predictions such as weather forecasting, while parameter estimation is more important for long-term targets such as climate pattern modelling \citep{vrettas2015variational}.
+
+This work places more emphasis on the inference of system parameters since they shed light on the internal mechanisms of a dynamical system. 
+Nevertheless, the states are also simultaneously estimated as a consequence of the design of the algorithm, which will be shown in later chapters.
+
+\section{Challenges}
+\label{sec-challenges}
+
+Although solving statistical inference problems involving ODEs and SDEs is useful in practice, but from a technical point of view, such problems involve many technical challenges as below.
+
+First, since closed-form solutions do not exist for most ODEs and not at all for SDEs, conventional methods based on explicit numerical integrations are computationally expensive, which renders them impractical even for small-sized applications.
+
+Second, the likelihood surfaces in the parameter space are likely multimodal due to nonlinearity within the dynamical systems \citep{calderhead2009accelerating}, and may exhibit many local maxima, which makes the optimization challenging.
+From a Bayesian perspective, the intractability of the marginalization term is conventionally approximated using \emph{Markov chain Monte Carlo (MCMC)} sampling schemes, which are in general very flexible but come at the cost of high computational intensity and onerous convergence analysis.
+Hence, the applicability of sampling-based approaches is largely subject to the dimensionality of the system under inference \citep{vrettas2015variational}. 
+
+Last, in most of the realistic scenarios, only corrupted, and sometimes even only sparse and partial observations are available.
+Devising inference algorithms that are robust in such situations is itself a difficult topic across all machine learning paradigms.
+
+\section{Contributions}
+The contributions of this work are as follows. 
+The Laplace mean-field approximation is proposed to relax the structural assumption on the dynamical systems.
+Through reparameterization on the optimization objectives, positivity constraints on the states and parameters are supported, which are essential for many real-world application.
+By utilizing the Doss-Sussmann/ Imkeller-Schmalfuss correspondence, the Laplace mean-field approximation is further extended to devise a distributed inference method to infer states and parameters of the SDEs.
+A brand new Python based solution is also implemented.
+
+\section{Organization}
+
+This thesis is organized as follows. \refchapter{\ref{ch-dynamical-systems}} gives a general introduction to deterministic and random dynamical systems and provides a brief review of other related work on inference in dynamical systems.
+\refchapter{\ref{ch-gmgp}} introduces in detail the gradient matching with Gaussian process framework \citep{calderhead2009accelerating, dondelinger2013ode} and its recent improvement \citep{gorbach2016mean, gorbach2017scalable} based on variational inference, which are the foundation of this work.
+In \refchapter{\ref{ch-laplace-approximation}}, the Laplace approximation technique is applied to the variational gradient matching model to derive a new solution that relaxes the structural assumption about the ODEs, and further introduces positivity constraints on the states and parameters through reparameterization.
+In \refchapter{\ref{ch-rodes}}, an ensemble-like inference solution for SDEs is derived by using the Doss-Sussmann/Imkeller-Schmalfuss correspondence.
+The examination and comparison of the accuracy, performance and scalability of the solutions proposed in this work are conducted in \refchapter{\ref{ch-experiments}}.
+Lastly, \refchapter{\ref{ch-conclusion}} draws the conclusion.
+
+

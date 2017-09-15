@@ -1,0 +1,124 @@
+\chapter{Inference in Dynamical Systems}
+\label{ch-dynamical-systems}
+
+This chapter reviews the necessary basics about ODEs \refsectionp{\ref{sec-odes}} and SDEs \refsectionp{\ref{sec-sdes}} with an emphasis on the task of inferring states and parameters of dynamical systems given noisy, sparse or even incomplete state observations. 
+Comprehensive discussions about ODEs and SDEs together with their numerical solutions can be found in textbooks such as \cite{butcher2016numerical} and \cite{oksendal2013stochastic}.
+Furthermore, the notations used to describe the dynamical systems, and the model under noisy observations are also introduced, which will be used throughout this work.
+In \refsection{\ref{sec-related}}, a survey of related work is provided.
+The details about the inference technique using variational gradient matching with Gaussian processes, which are the core foundations of this work, are examined in Chapter \ref{ch-gmgp}. 
+
+\section{Deterministic dynamical systems}
+\label{sec-odes}
+
+A $K$-dimensional deterministic dynamical system, i.e.\ a system with $K$ states, can be described by a set of ODEs as follows:
+\begin{align}
+    \dymdx = \frac{d\dymx}{dt} = \dymf
+    \label{eq-odes}
+\end{align}
+where $\dymx = [\mrange{\dymxktn{1}{}}{\dymxktn{K}{}}]^\top \in \R^K$ is a vector containing the $K$ states of the system at time point $t$ with their time derivatives collectively denoted by $\dymdx = \frac{d\dymx}{dt} = [\mrange{\dymfk{1}}{\dymfk{K}}]^\top \in \R^K$, and $\dymfshort : \R^K \mapsto \R^K$ encodes the functional relationship between the states and their derivatives over time that is in turn governed by a vector of parameters  $\dymtheta = [\mrange{\dymthetam{1}}{\dymthetam{M}}]^\top \in \R^M$. 
+Note that in general, $\dymfshort$ may have direct dependency on time, which is suppressed here to simplify the notations.
+
+From \cite{butcher2016numerical}, the specification of the ODEs alone is not interesting since it generally does not guarantee a unique solution. 
+But if the \emph{initial condition} $\dymxtn{0} = [\mrange{\dymxktn{1}{0}}{\dymxktn{K}{0}}]^\top$ is given, then together with \refequationp{\ref{eq-odes}}, they define a problem known as the \emph{initial value problem}, where the goal is to solve the differential equations to approximate the future states of the dynamical system.
+Three important aspects about the initial value problem are the existence of a solution, the uniqueness of the solution, and the sensitivity of the solution due to small perturbations to the initial condition.
+
+Within the context of this work, the initial problem can be therefore specified as the estimation of the states and the parameters of the ODEs based on state observations that are usually contaminated by noise.
+In light of this, the following paragraphs introduce the notations and the probabilistic model of a dynamical system under noisy observations, which will be used later in this work.
+
+\subsubsection*{Noisy observation model}
+
+Suppose for the $K$-dimensional deterministic dynamical system given by \refequationp{\ref{eq-odes}}, we have a sequence of noisy observations $\dymY = [\mrange{\dymytn{1}}{\dymytn{N}}] \in \R^{K \times N}$ over $N$ time points, whose the corresponding true states values are $\dymX = [\mrange{\dymxtn{1}}{\dymxtn{N}}] \in \R^{K \times N}$ such that $\dymytn{n} = \dymxtn{n} + \dymepsilontn{n}$ for $n=\mrange{1}{N}$, where $\dymepsilontn{n} \in \R^K$ denotes the observation noises for the $K$ states $\dymxtn{n}$ at time point $t_n$.
+The above description can be succinctly written in matrix notation as
+\begin{align}
+    \dymY = \dymX + \dymE
+    \nonumber
+\end{align}
+where $\dymY$ and $\dymX$ are defined before, and $E = [\mrange{\dymepsilontn{1}}{\dymepsilontn{N}}] \in \R^{K \times N}$.
+
+For simplicity, we assume that the observation noises $\dymepsilontn{n}$ at each time point are additive and state specific. 
+Moreover, they follow an \emph{independent and identically distributed (i.i.d.)} multivariate Gaussian distribution with zero mean and a diagonal covariance matrix across all time points, i.e.\ $\dymepsilon_{(\cdot)} \sim \mathcal{N}(\mvector{0}, \mvector{D})$, where $D_{ik} = \delta(i,k)\dymsigmak{k}^2$ for $i, k = \mrange{1}{K}$, $\delta$ is the \emph{Kronecker delta} function, and $\dymsigmak{k}^2$ is the variance of the observation noise for state $k$. 
+
+Let $\dymyktn{k}{n} \in \R$ and $\dymxktn{k}{n} \in \R$ be the observation and true value for the $k$-th state at time point $t_n$ respectively. 
+We can then collectively use $\dymyk{k} = [\mrange{\dymyktn{k}{1}}{\dymyktn{k}{N}}]^\top \in \R^N$ and $\dymxk{k} = [\mrange{\dymxktn{k}{1}}{\dymxktn{k}{N}}]^\top \in \R^N$ to denote the sequence of observations and the true values for the $k$-th state over the $N$ time points.
+With the above noise assumption and notations, we have
+\begin{align}
+    p(\dymY\vert\dymX,\dymsigma) 
+    = \prod_k{
+        \mathcal{N}(\dymyk{k}\vert\dymxk{k}, \dymsigmak{k}^2\mI)
+        }
+    \label{eq-ode-noise-model}        
+\end{align}
+
+Note that the discussion within this work can be generalized to  cases where only combinations of states are observed such that $\dymY = \mvector{H}\dymX + \dymE$, where $\mvector{H}$ describes the relationship between the states and the observations.
+In order to simplify the notation, we assume that $\mvector{H}$ is equal to the identity matrix $\mvector{I}$.
+Furthermore, handling of the cases where some states are not observed is also possible and will be presented in the relevant sections later.
+
+\section{Random dynamical systems}
+\label{sec-sdes}
+As another important family of dynamical systems, random dynamical systems, also referred to as \emph{diffusion processes}, have been widely applied to various domains because of their capability to incorporate unknown processes as internal noise processes \citep{vrettas2011estimating}.
+On a high level, a random dynamical system is a continuous time \emph{Markov process} consisting of a deterministic part and a stochastic noise driven component \citep{riesinger2016solving}.
+Such system is described by a set of SDEs and requires the special \emph{stochastic calculus}.
+
+Based on \cite{oksendal2013stochastic} and \cite{vrettas2015variational}, a $K$-dimensional SDE system defined on a probability space $\probspace$ is represented in the \emph{It\^{o}} form as
+\begin{align}
+    \sdedx = \sdef \sdedt + \sdeg \sdedwt
+\end{align}
+where $\sdefshort: \R^K \mapsto \R^K$ is the deterministic \emph{drift function} with \emph{drift parameter} vector $\sdetheta = [\mrange{\sdethetam{1}}{\sdethetam{M}}]^\top \in \R^M$, $\sdegshort: \R^k \mapsto \R^{K \times W}$ is the coefficient function for the noise process with \emph{diffusion parameter} vector $\sderho = [\mrange{\sderhoq{1}}{\sderhoq{V}}]^\top \in \R^V$, and $\sdedwt = [\mrange{\sdedwmtn{1}{t}}{\sdedwmtn{W}{t}}]^\top \in \R^W$ is the differential of a standard \emph{Wiener process} $\sdewt$ of dimension $W$, i.e.\ $\sdedwt \sim \mathcal{N}(\mvector{0}, dt\mvector{I})$.
+In its integral form, the above equation is equivalent to
+\begin{align}
+    \sdextn{T} = \sdextn{0} 
+    + \int_0^T{\sdeftn{s} ds}
+    + \sum_i^W{\int_0^T{\sdegwtn{i}{s} \sdedwmtn{i}{s}}}
+\end{align}
+where $\sdextn{0}$ denotes the initial condition and $\sdegwtn{i}{s}$ is the $i$-th column of the corresponding noise coefficient matrix.
+As $\sdewt$ is a stochastic process, each time we solve the above integration, we would obtain mostly likely a different \emph{sample path}.
+Note that similar to the ODEs in \refequationp{\ref{eq-odes}}, the dependency of $\sdefshort$ and $\sdegshort$ on time $t$ is suppressed here to unclutter the notations.
+
+The above equations define a linear diffusion process with multiplicative noises.
+For simplicity, we consider only stochastic systems with state-specific, additive white noise in this work.
+A class of multiplicative noise models can be mapped to this model through reparametrization \citep{vrettas2011estimating}.
+This assumption means that we can simplify the SDEs to 
+\begin{align}
+    \sdedx = \sdef \sdedt + \sdeSigma^{\frac{1}{2}} \sdedwt
+    \label{eq-sdes}
+\end{align} 
+where $\sdeSigma$ is the diagonal noise covariance matrix, i.e.\ $\sdeSigmaik{i}{k} = \delta(i,k)\rho_k^2$ for $i, k = \mrange{1}{K}$, and $\sdewt$ becomes a standard $K$-dimensional Wiener process.
+
+Skipping over the details of stochastic calculus, here we give an intuitive understanding of the evolution of the system by using the \emph{Euler-Maruyama} \citep{higham2001algorithmic} representation as follows:
+\begin{align}
+    \dymxtn{n+1} - \dymxtn{n} = \dymftn{n} \Delta t + 
+    \sqrt{\Delta t \sdeSigma} \mvector{\epsilon}_{t_n}
+    \label{eq-sdes-euler-maruyama}
+\end{align}
+where $\Delta t$ denotes the time increment and ${\mvector{\epsilon}}_{t_n}$ is a standard multivariate Gaussian random vectors, i.e.\ ${\mvector{\epsilon}}_{t_n} \sim \mathcal{N}(\mvector{0}, \mvector{I})$.
+The SDEs in \refequationp{\ref{eq-sdes}} can be considered as the limit of the process described by \refequationp{\ref{eq-sdes-euler-maruyama}} \citep{archambeau2007gaussian}.
+
+Without redundancy, the noisy observation model and the notations introduced previously in \refsection{\ref{sec-odes}} can be directly applied to the SDE models in the rest of this text.
+
+\section{Related work}
+\label{sec-related}
+
+For state and parameter inference in ODEs, \emph{gradient matching} has established itself in recent years as a promising tool.
+The main idea behind gradient matching is straightforward.
+It first interpolates the states $\dymX$ from the observations $\dymY$ using a smoothing technique, and then minimizes the discrepancy between slopes of the interpolants and the derivatives obtained from the ODEs $\dymf$ \citep{macdonald2015gradient}.
+This dramatically improves the inference efficiency since the ODEs never need to be solved explicitly in contrast to traditional techniques.
+
+Early applications of gradient matching trace back to the spline based method proposed by \cite{ramsay2007parameter}.
+Unfortunately, such a solution requires full observability of the system and is difficult to extend.
+More recently, gradient matching with Gaussian processes (\algogmgp)\ \citep{calderhead2009accelerating, dondelinger2013ode} model has been proposed.
+The introduction of Gaussian processes makes the inference technique grid free and is even capable of handling partially observed systems.
+In the original \algogmgp\ model, sampling is used to estimate the intractable posterior.
+A more performant and scalable solution called variational GMGP (\algovgmgp) is proposed by \cite{gorbach2017scalable}, which uses variational technique.
+As the foundation of this work, details of the original \algogmgp\ method and the \algovgmgp\ method are discussed in \refchapter{\ref{ch-gmgp}}.
+
+For inference problems involving random dynamical systems, classical approaches typically resort to Kalman filters and MCMC.
+The MCMC based solutions scale poorly in practice.
+As another approximate inference technique, variational methods have gained popularity in recent years.
+For example, the variational Gaussian process approximation (\algovgpa) proposed by \cite{archambeau2007gaussian} uses a linear approximation strategy to infer the states and the parameters of diffusions processes.
+It consists of two steps.
+In the forward step, the mean and covariance of the approximate process are estimated.
+Then in the backward step, the time evolution of the Lagrange multipliers are calculated.
+The Lagrange multipliers ensure consistency for the mean and covariance.
+These two steps are then iteratively executed to improved the result.
+Further improvements based on this method can be found in \cite{archambeau2008variational} and \cite{vrettas2011estimating, vrettas2015variational}.
+

@@ -1,0 +1,146 @@
+\chapter{Extension to Random Dynamical Systems}
+\label{ch-rodes}
+
+As another important family of differential equations, \emph{random ordinary differential equations (RODEs)} are closely related to both ODEs and SDEs.
+A system of RODEs is simply a set of ODEs with a stochastic process in its vector field functions \citep{kloeden2007pathwise}, while an SDE system can be analyzed using its RODE counterpart \citep{sussmann1978gap, imkeller2001conjugacy}.
+Since RODEs are pathwise ODEs, the Laplace mean-field approximation described in \refchapter{\ref{ch-laplace-approximation}} can then be used to infer the states and parameters of the RODEs, or equivalently, the corresponding SDEs.
+
+This chapter is organized as follows.
+\refsection{\ref{sec-rodes}} gives a brief introduction to RODEs.
+In \refsection{\ref{sec-rodes-laplace}}, the Laplace mean-field approximation technique is applied to RODEs to devise an \emph{ensemble}-like \citep[\refsection{16.6}]{murphy2012machine} solution to infer the states and parameters for diffusion processes.
+We demonstrate the performance and accuracy of the solution empirically by comparing with other state-of-art techniques in \refchapter{\ref{ch-experiments}}.
+
+\section{Random ordinary differential equations}
+\label{sec-rodes}
+
+Adopting the definition from \cite{kloeden2007pathwise}, RODEs are simply ODEs with a stochastic process in their vector fields.
+Let $\mvector{f}: \R^K\times\R^W\mapsto\R^K$ be a continuous function, and $(\mvector{\zeta}_t)_{t\in [0,T]}$ be an $\R^W$ valued stochastic process with continuous sample paths defined on the complete probability space $\probspace$.  
+For all $\mvector{\omega} \in \mvector{\Omega}$, a $K$-dimensional RODE defined as
+\begin{align}
+    \frac{d\dymx}{dt} = \mvector{f}(\dymx, \mvector{\zeta}_t(\mvector{\omega}))
+    \label{eq-rodes}
+\end{align}
+is a \emph{non-autonomous} ODE system
+\begin{align}
+    \dymdx = \frac{d\dymx}{dt} = \mvector{F}_{\mvector{\omega}}(\mvector{x}, t) = \mvector{f}(\dymx, \mvector{\omega}_t)
+    \label{eq-rodes-odes}
+\end{align}
+An example \citep{grune2001pathwise} of a scalar RODE with additive noise is given by
+\begin{align}
+    \frac{dx(t)}{dt} = -x + \cos{(W_t(\omega))}
+    \label{eq-rodes-example}
+\end{align}
+where $W_t$ is a one-dimensional Wiener process.
+A RODE example with multiplicative noise can be defined similarly but is not considered in this work.
+
+Following \cite{kloeden2007pathwise}, to ensure the existence of a unique solution for the initial value problem defined in \refsection{\ref{sec-odes}} on the finite time interval $[0,T]$, we typically assume that $\mvector{f}$ is arbitrarily smooth, i.e.\ it is infinitely differentiable in its variables, and thus is locally \emph{Lipschitz} in $\mvector{x}$. 
+Since the stochastic process is usually only \emph{H{\"o}lder continuous} in time, the vector field of the non-autonomous ODEs $\mvector{F}_{\mvector{\omega}}(\mvector{x}, t)$ is therefore continuous but not differentiable in time for every fixed realization of $\mvector{\omega} \in \mvector{\Omega}$.
+
+Because for every fixed realization of $\mvector{\omega} \in \mvector{\Omega}$, the RODEs \refequationp{\ref{eq-rodes}} turn into a deterministic ODE system \refequationp{\ref{eq-rodes-odes}}, one approach to solving the RODEs is to use sampling methods to first obtain many sample paths, and then solving each sample path deterministically.
+In order to cover the statistics of the solution, a massive number of ODEs must be solved efficiently.
+A high performance related study was conducted by \cite{riesinger2016solving}, where the sample paths are solved in parallel on a modern GPU cluster.
+
+\section{Doss-Sussmann/Imkeller-Schmalfuss correspondence}
+\label{sec-doss-sussmann}
+
+Since a system of RODEs can be analyzed pathwise using deterministic calculus, it offers an opportunity to study its related SDEs as discussed below.
+
+First of all, it has been shown by \cite{jentzen2011taylor} that any RODE system with a Wiener process can be expressed as its equivalent SDE system. 
+Using the scalar RODE in \refequationp{\ref{eq-rodes-example}} as an example, its SDE formulation is described as
+\begin{align}
+    d\begin{pmatrix}
+        x_t 
+        \\ 
+        y_t
+    \end{pmatrix}
+    & = 
+    \begin{pmatrix}
+        -x_t + \cos{(y_t)}
+        \\
+        0
+    \end{pmatrix}
+    + 
+    \begin{pmatrix}
+        0
+        \\
+        1
+    \end{pmatrix}
+    dW_t
+\end{align}
+
+Similarly, any finite dimensional SDE system can be transformed into its equivalent ODEs by utilizing the \emph{Doss-Sussmann/Imkeller-Schalfuss} \citep{sussmann1978gap, imkeller2001conjugacy} correspondence.
+Specifically, for SDE models with additive noise, the statement from \cite[\refchapter{2}]{jentzen2011taylor} is stated as the following proposition.
+\begin{proposition}
+    Any finite dimensional SDE system can be transformed into an equivalent RODE system and vice versa as follows:
+    \begin{align}
+        \sdedx = \sdef\sdedt + \sdedwt 
+        \iff 
+        \frac{\rodedz}{dt} = \rodef + \rodeo
+        \label{eq-rode-sde}
+    \end{align}
+    where $\rodez = \sdex - \rodeo$ and $\rodeo$ is a stationary stochastic \emph{Ornstein-Uhlenbeck} process defined as
+    \begin{align}
+        d\rodeo = -\rodeo\sdedt + \sdedwt
+    \end{align}
+\end{proposition}  
+
+\section{Laplace mean-field for random dynamical systems}
+\label{sec-rodes-laplace}
+
+As discussed previously, although RODE sample paths can be analyzed using deterministic calculus, the existence of the stochastic process causes traditional numerical schemes such as the \emph{Euler} and the \emph{Runge-Kutta} methods \citep{butcher2016numerical} to fail to achieve their usual order of convergence when applied to RODEs \citep{grune2001pathwise}.
+In the past, improved numerical solutions such as the integral versions of the implicit Taylor-like expansions \citep{kloeden2007pathwise} have been proposed to achieve better result.
+
+On the other hand, since the solution paths of the RODEs are once differentiable, the gradient matching model can be ideally applied to the RODEs.
+Moreover, the computational efficiency of the \algolpmf\ method allows a large number of RODE sample paths to be solved simultaneously. 
+Lastly, by using the Doss-Sussmann/Imkeller-Schalfuss correspondence described before, we derive the following ensemble gradient matching algorithm, denoted as \algolpmfsde, to infer the states and the parameters of the SDEs without requiring any stochastic calculus.
+
+\begin{algorithm}
+    \centering
+    \caption{Pseudocode for the \algolpmfsde\ algorithm.}
+    \label{algo-lpmf-sde}
+    \begin{algorithmic}[1]
+        \State{Transform the SDEs into RODEs using \refequationp{\ref{eq-rode-sde}}.}
+        \State{Generate $N_{paths}$ RODEs sample paths using each time an independently generated Ornstein-Uhlenbeck process sample path.}
+        \For{$i = \mrange{1}{N_{paths}}$}
+            \State{Estimate the states and parameters using \refalgorithm{\ref{algo-lpmf}}.}
+        \EndFor
+        \State{Average the estimation results from all the sample paths.}
+    \end{algorithmic}
+\end{algorithm}
+
+Since the experiments are conducted with the Lorenz 63 and the Lorenz 96 models, the estimation of the parameters are carried out by extending the closed-forms solutions from \refequationp{\ref{eq-vgmgp-theta-conditional-mean}} and \refequationp{\ref{eq-vgmgp-theta-conditional-covariance}} as follows:
+\begin{align}
+    \dymetatheta 
+    & = \dymOmegatheta \sum_k{\dymBthetakX{k}^T\dymLambdak{k}(\dymmk{k} - \dymbthetakX{k} - \mdata{O}_k)}    
+    \\
+    \dymXitheta^{-1}
+    & = \sum_k{\dymBthetakX{k}^T\dymLambdak{k}\dymBthetakX{k}}
+\end{align}
+where 
+\begin{align}
+    \dymmk{k} &= \dymdCdphik{k}\dyminvCphik{k}\mvector{z}_k
+    \\
+    \dyminvLambdak{k} &= \dymdCdphik{k} - \dymdCphik{k}\dyminvCphik{k}\dymCdphik{k} + \dymgamma_k \mvector{I}
+\end{align}
+Similar to the notations introduced in \refsection{\ref{sec-odes}}, $\mvector{z}_u \in \R^N$ and $\mdata{Z} \in \R^{K \times N}$ refer to the states of the RODE sample path, while $\mdata{O}$ refer to the states of the Ornstein-Uhlenbeck process.
+Note that the rewriting of the vector field as a linear combination of the parameters $\dymtheta$ and an extra term should satisfy
+\begin{align}
+    \mvector{B}_{\dymtheta k}(\mdata{Z} + \mvector{O})\dymtheta + \mvector{b}_{\dymtheta k}(\mdata{Z} + \mdata{O}) + \mdata{O} 
+    = 
+    \mvector{f}_k(\mdata{Z} + \mdata{O}, \dymtheta) + \mdata{O}
+\end{align}
+for $k = \mrange{1}{K}$.
+
+Due to the complexity of expressing as a linear combination of the states and an extra term, the states of the RODE sample path are estimated using gradient-descent by minimizing the adapted cost function \refequationp{\ref{eq-laplace-xu-cost}} as follows:
+\begin{align}
+    cost_{\mvector{z}_u} 
+    &= \ln{[\mathcal{N}(\mvector{z}_u\vert\mvector{\mu}(\mvector{y}_u), \dymSigmak{u})\prod_k{
+        \mathcal{N}(\mvector{f}_k(\mdata{Z} + \mdata{O}, \dymtheta) + \mdata{O}\vert\dymmk{k},\dyminvLambdak{k}))]}
+    }
+\end{align}
+for $u = \mrange{1}{K}$,  where
+\begin{align}
+    \dymmuk{u} &= \dymCphik{u}(\dymCphik{u} + \dymsigmak{u}^2\mI)^{-1}\dymyk{u}
+    \\
+    \dymSigmak{u} &= \dymsigmak{u}^2\dymCphik{u}(\dymCphik{u} + \dymsigmak{u}^2\mI)^{-1}
+\end{align}

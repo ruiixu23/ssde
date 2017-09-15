@@ -1,0 +1,447 @@
+\chapter{Laplace Mean-Field Approximation}
+\label{ch-laplace-approximation}
+
+One limitation of the previous \algovgmgp\ methodology is that analytical variational lower bounds are obtainable only if the structural assumption on the ODEs is satisfied.
+Although many dynamical systems such the Lotka-Volterra model \refsectionp{\ref{sec-lotka-volterra}}, the Lorenz 63 model \refsectionp{\ref{sec-lorenz-63}} and the Lorenz 96 model \refsectionp{\ref{sec-lorenz-96}} fulfill this requirement, it would be valuable to devise a more general solution without constraining the structure of the ODEs.
+Moreover, for models of biochemical or physical interactions such as the protein signaling transduction pathway model \refsectionp{\ref{sec-protein-signalling-transduction-pathway}}, sometimes the states or the parameters need to be positive in order to give meaningful results.
+This positivity constraint is also not supported by  \algovgmgp.
+Lastly, as can be seen from \refequationp{\ref{eq-vgmgp-lambda-vi-optimal}} and \refequationp{\ref{eq-vgmgp-psiu-vi-optimal}}, the analytical solution requires lots of book-keeping, due to the evaluation of the expectations, which renders the implementation cumbersome and error prone.
+
+As an extension to the previous variational approach, this chapter derives another approximation scheme based on Laplace approximation.
+\refsection{\ref{sec-laplace-approximation}} give a brief review about the general Laplace approximation technique.
+In \refsection{\ref{sec-laplace-mean-field}}, it is applied to the \algovgmgp\ model to derive a new solution called \emph{Laplace mean-field (\algolpmf)}, which relaxes the assumption about the ODE structure.
+Similar to the variational approach, this solution also transforms the original inference problem into an optimization problem.
+However, due to the relaxation on the ODE structure, the optimization objectives can in general no longer be optimized in closed-form, and hence, numerical solutions have to be used.
+As will be shown in \refsection{\ref{sec-laplace-gradient-and-hessian}}, the gradients and even the Hessians of the state objectives can be computed efficiently, which allows us to rely on second-order optimization techniques and enables the algorithm to scale to large-scale dynamical systems.
+Viewing the \algolpmf\ optimization objectives as risk functions, we can further use the reparameterization trick to enforce positivity constraints on the states and the ODE parameters, which will be discussed in \refsection{\ref{sec-laplace-positivity}}.
+The strengths and weaknesses of the \algolpmf\ solution are examined empirically and discussed in \refchapter{\ref{ch-experiments}}.
+
+
+\section{Laplace approximation}
+\label{sec-laplace-approximation}
+
+This section reviews the \emph{Laplace approximation}  technique in the context of approximating an unknown multivariate probability distribution based on \cite[\refsection{4.4}]{bishop2006pattern} and \cite[\refsection{27}]{mackay2003information}.
+
+Suppose we are interested in the following probability distribution 
+\begin{align}
+    p(\mvector{x}) = \frac{\widetilde{p}(\mvector{x})}{Z}
+\end{align}
+where $\mvector{x} \in \R^D$, $\widetilde{p}(\mvector{x})$ is known and $Z = \int{\widetilde{p}(\mvector{x})d\mvector{x}}$ is the normalization constant assumed to be intractable.
+The Laplace approximation of $p$ is a Gaussian distribution $q$ such that its mean is centered on a mode of the $p$ \citep{mackay2003information}. 
+
+Assuming that $p$ has a peak at the point $\mvector{x}_0$, then the gradient $\nabla p(\mvector{x}_0) = 0$, or equivalently, $\nabla\widetilde{p}(\mvector{x}_0) = 0$. 
+The second-order \emph{Taylor expansion} of $\ln{\widetilde{p}(\mvector{x})}$ around $\mvector{x}_0$ is given by
+\begin{align}
+    \ln{\widetilde{p}(\mvector{x})} 
+    & \approx \ln{\widetilde{p}(\mvector{x}_0)} 
+        + (\mvector{x} - \mvector{x}_0)\nabla \widetilde{p}(\mvector{x}_0)
+        - \frac{1}{2}(\mvector{x} - \mvector{x}_0)^T\mvector{\widetilde{H}}(\mvector{x} - \mvector{x}_0)
+    \nonumber
+    \\
+    & = \ln{\widetilde{p}(\mvector{x}_0)}
+        - \frac{1}{2}(\mvector{x} - \mvector{x}_0)^T\mvector{\widetilde{H}}(\mvector{x} - \mvector{x}_0)
+    \label{eq-laplace-p-log}
+\end{align}
+where $\mvector{\widetilde{H}}$ is the negative of the Hessian matrix $\mvector{H}$ at $\mvector{x}_0$ such that 
+\begin{align}   
+    \widetilde{H}_{ij} = -H_{ij} = -\frac{\partial^2}{\partial x_i \partial x_j}\ln{\widetilde{p}}\vert_{\mvector{x} = \mvector{x}_0}      
+\end{align}
+or 
+\begin{align}
+    \mvector{\widetilde{H}} = -\mvector{H} = -\nabla\nabla\ln{\widetilde{p}}(\mvector{x}_0)    
+\end{align}
+
+
+Exponentiating both sides of \refequationp{\ref{eq-laplace-p-log}}, we have 
+\begin{align}
+    \widetilde{p}(\mvector{x}) 
+    & \approx \widetilde{p}(\mvector{x}_0) 
+        \exp{[
+            - \frac{1}{2}(\mvector{x} - \mvector{x}_0)^T\mvector{\widetilde{H}}(\mvector{x} - \mvector{x}_0)
+        ]}
+    \label{eq-laplace-p-exp}
+\end{align}
+which is of quadratic form and can be normalized by inspection to obtain the following Gaussian distribution:
+\begin{align}
+    q(\mvector{x}) 
+    & = \frac{\lvert \mvector{\widetilde{H}} \rvert^{\frac{1}{2}}}{(2\pi)^{\frac{
+    D}{2}}} \exp{[
+        - \frac{1}{2}(\mvector{x} - \mvector{x}_0)^T\mvector{\widetilde{H}}(\mvector{x} - \mvector{x}_0)
+    ]}
+    \nonumber
+    \\
+    & = \mathcal{N}(\mvector{x}\vert \mvector{x}_0,
+    \mvector{\widetilde{H}}^{-1})
+    \label{eq-laplace-q}
+\end{align}
+
+\section{Laplace mean-field approximation}
+\label{sec-laplace-mean-field}
+
+As discussed in \refsection{\ref{sec-variational-gradient-matching}}, the conditional distributions $p(\dymtheta\vert\dymY,\dymX,\dymphi,\dymgamma)$ \refequationp{\ref{eq-vgmgp-xu-conditional}} and $p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymtheta,\dymsigma,\dymgamma)$ \refequationp{\ref{eq-vgmgp-theta-conditional}} are both Gaussians provided that the ODEs fulfill the structural assumption described by \refequationp{\ref{eq-vgmgp-odes}}.
+If we relax the constraint on the structure of the ODEs, the distributions $p(\dymtheta\vert\dymY,\dymX,\dymphi,\dymgamma)$ and $p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymtheta,\dymsigma,\dymgamma)$ are no longer Gaussians and cannot be normalized in closed-form anymore.
+
+From the gradient matching model, we have
+\begin{align}
+    p(\dymtheta\vert\dymY,\dymX,\dymphi,\dymgamma) 
+    & \stackrel{(a)}{=} 
+    p(\dymtheta\vert,\dymX,\dymphi,\dymgamma) 
+    \nonumber
+    \\
+    & \propto 
+    p(\dymtheta)\int{p(\dymdX\vert\dymX,\dymphi,\dymtheta,\dymgamma)d\dymdX}
+    \nonumber
+    \\
+    & \propto 
+    \prod_k{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
+    \label{eq-laplace-theta-objective}
+\end{align}
+where $(a)$ holds since $\dymtheta$ depends indirectly on $\dymY$ through $\dymX$ \citep{gorbach2017scalable}, and $p(\dymdX\vert\dymX,\dymphi,\dymtheta,\dymgamma)$ is the product of experts result \refequationp{\ref{eq-gmgp-poe}}.
+
+Similarly, for each state $\dymxk{u}$ with $u = \mrange{1}{K}$, we have
+\begin{align}
+    p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymtheta,\dymsigma,\dymgamma)
+    & = 
+    p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymsigma)
+    \int{
+        p(\dymdX\vert\dymxk{u},\dymXwithoutk{u},\dymphi,\dymtheta,\dymgamma)d\dymdX}
+    \nonumber
+    \\
+    & \stackrel{(b)}{\propto}
+    \mathcal{N}(\dymxk{u}\vert\dymmuk{u},\dymSigmak{u})\prod_k{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
+    \label{eq-laplace-xu-objective}
+\end{align}
+where (b) holds because $p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymsigma)$ depends only on $\dymyk{u}$ as the consequence of the independent Gaussian process prior assumption on states \refequationp{\ref{eq-gmgp-x-prior}}, and $p(\dymdX\vert\dymxk{u},\dymXwithoutk{u},\dymphi,\dymtheta,\dymgamma)$ is equivalent to $p(\dymdX\vert\dymX,\dymphi,\dymtheta,\dymgamma)$.
+
+\subsubsection*{Cost functions}
+
+If we follow the same factorization assumption over the states and the parameters as \cite{gorbach2017scalable}, and require each component of the proxy distribution $Q(\dymX, \dymtheta)$ to be Gaussian, then $Q(\dymX, \dymtheta)$ is of the following form
+\begin{align}
+    Q(\dymX,\dymtheta) 
+    & = 
+    q(\dymtheta\vert\dymetatheta,\dymXitheta)\prod_u{
+        q(\dymxk{u}\vert\dymetaxk{u},\dymXixk{u})}
+    \nonumber
+    \\
+    & = \mathcal{N}(\dymtheta\vert\dymetatheta, \dymXitheta)\prod_u{
+        \mathcal{N}(\dymxk{u}\vert\dymetaxk{u},\dymXixk{u})
+    }
+\end{align}
+
+Based on \refequationp{\ref{eq-laplace-theta-objective}} and the Laplace approximation technique reviewed before, the mean of the Gaussian proxy $q(\dymtheta\vert\dymetatheta,\dymXitheta)$ can be found by
+\begin{align}
+    \dymetatheta
+    & = 
+    \argmax_{\dymtheta}{
+        \sum_k{
+            \ln{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
+        }}
+    \nonumber
+    \\
+    & =
+    \argmin_{\dymtheta}{
+        \frac{1}{2}\sum_k{
+            (\dymfkXshort{k} - \dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k} - \dymmk{k})
+        }
+    }
+    \nonumber
+    \\
+    & = 
+    \argmin_{\dymtheta}{
+        cost_{\dymtheta}(\dymX,\dymtheta,\dymm,\dymLambda)
+    }
+    \label{eq-laplace-theta-cost}
+\end{align}
+where $\dymfkXshort{k} = \dymfkX{k}$, $\dymm = [\mrange{\dymmk{1}}{\dymmk{K}}]$ and $\dymLambda = [\mrange{\dymLambdak{1}}{\dymLambdak{K}}]$.
+The precision matrix $\dymXitheta^{-1}$ is then the Hessian of the objective function  \refequationp{\ref{eq-laplace-theta-cost}} evaluated at the optimal point $\dymetatheta$
+\begin{align}
+    \dymXitheta^{-1} 
+    & = 
+    \nabla\nabla cost_{\dymtheta}\vert_{\dymtheta = \dymetatheta}  
+    \label{eq-laplace-theta-covariance}    
+\end{align}
+
+Similarly, the mean of the Gaussian proxy $q(\dymxk{u}\vert\dymetaxk{u},\dymXixk{u})$ for $u = \mrange{1}{K}$ can be found using \refequationp{\ref{eq-laplace-xu-objective}} as 
+\begin{align}
+    \dymetaxk{u}
+    & =     
+    \argmax_{\dymxk{u}}{[
+        \ln{\mathcal{N}(\dymxk{u}\vert\dymmuk{u},\dymSigmak{u})} 
+        + \sum_k{
+            \ln{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
+        }]}
+    \nonumber
+    \\
+    & =
+    \argmin_{\dymxk{u}}{
+        \frac{1}{2}[(\dymxk{u} - \dymmuk{u})^T\dyminvSigmak{u}(\dymxk{u} - \dymmuk{u})
+        + \sum_k{
+            (\dymfkXshort{k} - \dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k} - \dymmk{k})        
+        }]
+    }
+    \nonumber
+    \\
+    & =
+    \argmin_{\dymxk{u}}{
+        cost_{\dymxk{u}}(\dymxk{u},\dymXwithoutk{u},\dymtheta,\dymmuk{u},\dymSigmak{u},\dymm,\dymLambda)
+    }
+    \label{eq-laplace-xu-cost}
+\end{align}
+The corresponding precision matrix $\dymXixk{u}^{-1}$ is given by 
+\begin{align}
+    \dymXixk{u}^{-1} 
+    & = 
+    \nabla\nabla cost_{\dymxk{u}}\vert_{\dymxk{u} = \dymetaxk{u}}
+    \label{eq-laplace-xu-covariance}
+\end{align}
+
+\subsection*{\algolpmf\ algorithm}
+
+To conclude, given the initialization from the Gaussian processes, the optimization step \refequationp{\ref{eq-laplace-theta-cost}} first updates the estimation of the parameters, and then for each state, the optimization procedure \refequationp{\ref{eq-laplace-xu-cost}} improves state estimation.
+These two steps are executed in turn iteratively until convergence of the estimation or the maximum allowed number of iterations is reached.
+Lastly, the covariance matrices of the estimation results are calculated using \refequationp{\ref{eq-laplace-theta-covariance}} and \refequationp{\ref{eq-laplace-xu-covariance}}.
+The pseudocode for the \algolpmf\ algorithm is given in \refalgorithm{\ref{algo-lpmf}}.
+
+\begin{algorithm}
+    \centering
+    \caption{Pseudocode for the \algolpmf\ algorithm.}
+    \label{algo-lpmf}
+    \begin{algorithmic}[1]
+        \For{$u = \mrange{1}{K}$}
+            \State 
+            \text{Initialize $\dymmuk{u}$, $\dymSigmak{u}$, $\dymmk{u}$ and $\dymLambdak{u}$ using Gaussian process regression}
+        \EndFor
+        \State
+        \While{\text{not converged or maximum iteration not reached}}
+            \State 
+            \text{$\dymetatheta = \argmin_{\dymtheta}{cost_{\dymtheta}(\dymetaX,\dymtheta,\dymm,\dymLambda)}$}
+
+            \For{$u = \mrange{1}{K}$}
+                \State 
+                \text{$\dymetaxk{u} = \argmin_{\dymxk{u}}{cost_{\dymxk{u}}(\dymxk{u},\dymetaXwithoutk{u},\dymetatheta,\dymmuk{u},\dymSigmak{u},\dymm,\dymLambda)}$}
+            \EndFor                            
+        \EndWhile
+        \State
+        \State
+        \text{$\dymXitheta^{-1} = \nabla\nabla cost_{\dymtheta}(\dymetaX, \dymetatheta,\dymm,\dymLambda)$}
+        \For{$u = \mrange{1}{K}$}
+            \State
+            \text{$\dymXixk{u}^{-1} = \nabla\nabla cost_{\dymxk{u}}(\dymetaxk{u},\dymetaXwithoutk{u},\dymetatheta,\dymmuk{u},\dymSigmak{u},\dymm,\dymLambda)$}
+        \EndFor
+    \end{algorithmic}
+\end{algorithm}
+
+Note that when the ODEs satisfy the structural assumption about the parameters $\dymtheta$, closed-form solutions for $\dymetatheta$ and $\dymXitheta$ can be obtained using \refequationp{\ref{eq-vgmgp-theta-conditional-mean}} and \refequationp{\ref{eq-vgmgp-theta-conditional-covariance}} respectively, which requires rewriting the ODEs as linear combination of the parameters plus a term that is independent of them.
+Similarly, analytical solutions for $\dymetaxk{u}$ and $\dymXixk{u}$ can be derived from \refequationp{\ref{eq-vgmgp-xu-conditional-mean}} and \refequationp{\ref{eq-vgmgp-xu-conditional-covariance}} for $u = \mrange{1}{K}$ when the structural assumption about the states is fulfilled.
+This also requires rewriting of the ODEs as a linear combination of the states plus an independent term, which is more cumbersome than the previous case for dynamical systems with large number of states.
+
+\section{Derivation for the gradients and Hessians}
+\label{sec-laplace-gradient-and-hessian}
+
+This section derives the gradient and Hessian for the cost function $cost_{\dymxk{u}}$ \refequationp{\ref{eq-laplace-xu-cost}} and shows that they can be evaluated efficiently.
+
+Recall that the cost function $cost_{\dymxk{u}}$ for state $u$ is given by
+\begin{align}
+    & cost_{\dymxk{u}}
+    =
+    \frac{1}{2}[(\dymxk{u} - \dymmuk{u})^T\dyminvSigmak{u}(\dymxk{u} - \dymmuk{u})
+        + \sum_k{
+            (\dymfkXshort{k} - \dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k} - \dymmk{k})        
+        }]
+    \nonumber
+\end{align}
+We are interested in the gradient and Hessian of $cost_{\dymxk{u}}$ w.r.t\ state $\dymxk{u}$, i.e.\ $\nabla_{\dymxk{u}}cost_{\dymxk{u}}$ and $\nabla\nabla_{\dymxk{u}}cost_{\dymxk{u}}$.
+Since differentiation is a linear operation, we can look at the gradient and Hessian of each component of the cost function separately.
+
+Using matrix derivative and the fact that $\dyminvSigmak{u}$ is symmetric, the gradient and Hessian of the first term in $cost_{\dymxk{u}}$ are
+\begin{align}
+    \nabla_{\dymxk{u}}\frac{1}{2}(\dymxk{u} - \dymmuk{u})^T\dyminvSigmak{u}(\dymxk{u} - \dymmuk{u}) 
+    = \dyminvSigmak{u}\dymxk{u}
+    \label{eq-laplace-mu-gradient}
+\end{align}
+and 
+\begin{align}
+    \nabla\nabla_{\dymxk{u}}\frac{1}{2}(\dymxk{u} - \dymmuk{u})^T\dyminvSigmak{u}(\dymxk{u} - \dymmuk{u}) 
+    = \dyminvSigmak{u}
+    \label{eq-laplace-mu-hessian}
+\end{align}
+
+Using the \emph{chain rule} and the fact that $\dymLambdak{k}$ is symmetric, for each component from the second term in $cost_{\dymxk{u}}$, the gradient is given by
+\begin{align}
+    &\nabla_{\dymxk{u}}(\dymfkXshort{k}-\dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})
+    \nonumber
+    \\
+    = & 
+    \begin{bmatrix}
+        \frac{\partial(\dymfkXshort{k}-\dymmk{k})_1}{\partial \dymxktn{u}{1}} 
+        & 
+        \cdots 
+        & 
+        \frac{\partial(\dymfkXshort{k}-\dymmk{k})_N}{\partial \dymxktn{u}{1}}
+        \\
+        \vdots 
+        &
+        \ddots
+        &
+        \vdots
+        \\
+        \frac{\partial(\dymfkXshort{k}-\dymmk{k})_1}{\partial \dymxktn{u}{N}} 
+        &
+        \cdots
+        &
+        \frac{\partial(\dymfkXshort{k}-\dymmk{k})_N}{\partial \dymxktn{u}{N}} 
+    \end{bmatrix}
+    \dymLambdak{k}
+    (\dymfkXshort{k}-\dymmk{k})
+    \nonumber
+    \\
+    = &
+    \begin{bmatrix}
+        \frac{\partial(\dymfkXshort{k})_1}{\partial \dymxktn{u}{1}} 
+        & 
+        \cdots 
+        & 
+        \frac{\partial(\dymfkXshort{k})_N}{\partial \dymxktn{u}{1}}
+        \\
+        \vdots 
+        &
+        \ddots
+        &
+        \vdots
+        \\
+        \frac{\partial(\dymfkXshort{k})_1}{\partial \dymxktn{u}{N}} 
+        &
+        \cdots
+        &
+        \frac{\partial(\dymfkXshort{k})_N}{\partial \dymxktn{u}{N}} 
+    \end{bmatrix}
+    \dymLambdak{k}(\dymfkXshort{k}-\dymmk{k}) 
+    \nonumber
+    \\
+    & -
+    \begin{bmatrix}
+        \frac{\partial(\dymmk{k})_1}{\partial \dymxktn{u}{1}} 
+        & 
+        \cdots 
+        & 
+        \frac{\partial(\dymmk{k})_N}{\partial \dymxktn{u}{1}}
+        \\
+        \vdots 
+        &
+        \ddots
+        &
+        \vdots
+        \\
+        \frac{\partial(\dymmk{k})_1}{\partial \dymxktn{u}{N}} 
+        &
+        \cdots
+        &
+        \frac{\partial(\dymmk{k})_N}{\partial \dymxktn{u}{N}} 
+    \end{bmatrix}
+    \dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})  
+\end{align}
+Since the states do not appear inside the vector field across time points, the first matrix above is necessarily a diagonal matrix.
+If the $\dymfkXshort{k}$ is independent of $\dymxk{u}$, then this matrix is a zero matrix.
+Since $\dymmk{k} = \dymdCdphik{k}\dyminvCphik{k}\dymxk{k}$ is a linear combination of $\dymxk{k}$, the second matrix is the transpose of $\dymdCdphik{k}\dyminvCphik{k}$ if $k = u$ and is a zero matrix otherwise.
+
+The Hessian of $(\dymfkXshort{k}-\dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})$ w.r.t.\ $\dymxk{u}$ also exhibits such sparse structure.
+In brief, the $(i, j)$-th entry of the Hessian is given by
+\begin{align}
+    &\frac{
+        \partial^{2}(\dymfkXshort{k}-\dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})}{
+        \partial\dymxktn{u}{i}\partial\dymxktn{u}{j}}
+    \nonumber
+    \\
+    = & \begin{bmatrix}
+        \frac{\partial^2(\dymfkXshort{k}-\dymmk{k})_1}{\partial\dymxktn{u}{i}\partial\dymxktn{u}{j}}
+        &
+        \cdots
+        &
+        \frac{\partial^2(\dymfkXshort{k}-\dymmk{k})_N}{\partial\dymxktn{u}{i}\partial\dymxktn{u}{j}}
+    \end{bmatrix}
+    \dymLambdak{k}(\dymfkXshort{k}-\dymmk{k}) 
+    \nonumber
+    \\
+    & + 
+    \begin{bmatrix}
+        \frac{\partial(\dymfkXshort{k}-\dymmk{k})_1}{\partial\dymxktn{u}{j}}
+        &
+        \cdots
+        &
+        \frac{\partial(\dymfkXshort{k}-\dymmk{k})_N}{\partial\dymxktn{u}{j}}
+    \end{bmatrix}
+    \dymLambdak{k}
+    \begin{bmatrix}
+        \frac{\partial(\dymfkXshort{k}-\dymmk{k})_1}{\partial\dymxktn{u}{i}}
+        \\
+        \vdots
+        \\
+        \frac{\partial(\dymfkXshort{k}-\dymmk{k})_N}{\partial\dymxktn{u}{i}}
+    \end{bmatrix}
+\end{align}
+The overall gradients and Hessian are just the sums of the respective components discussed above.
+With proper handling of multiplication involving diagonal matrices and caching of constant terms, the gradient and Hessian of of the cost function $cost_{\dymxk{u}}$ can be very efficiently calculated, as will be shown empirically in \refchapter{\ref{ch-experiments}}.
+
+Although the gradient and Hessian of $cost_{\dymtheta}$ \refequationp{\ref{eq-laplace-theta-cost}} w.r.t.\ $\dymtheta$ do not have such structure, they can still be evaluated relatively efficiently since the number of parameters is usually small in comparison to the number of states.
+In this work, both symbolic tools and machine learning libraries supporting auto-differentiation are employed to calculate the gradient and Hessian of $cost_{\dymtheta}$.
+
+\section{Positivity constraints}
+\label{sec-laplace-positivity}
+
+An advantage of the \algolpmf\ solution is that we can treat the optimization objectives $cost_{\dymtheta}$ and $cost_{\dymxk{u}}$ for $u = \mrange{1}{K}$ as risk functions, and hence the name ``cost'' is used in the notations.
+This allows us to apply the following reparameterization trick to enforce a positivity constraint on the parameters and the states.
+
+From \refsection{\ref{sec-laplace-mean-field}}, the optimal estimation for the parameters and states is given by
+\begin{align}
+    \dymtheta^*
+    & =
+    \argmin_{\dymtheta}{
+        cost_{\dymtheta}(\dymX,\dymtheta,\dymm,\dymLambda)
+    }
+    \label{eq-laplace-theta-cost-short}
+    \\
+    \dymxk{u}^*
+    & =     
+    \argmin_{\dymxk{u}}{
+        cost_{\dymxk{u}}(\dymxk{u},\dymXwithoutk{u},\dymtheta,\dymmuk{u},\dymSigmak{u},\dymm,\dymLambda)
+    }
+    \label{eq-laplace-xu-cost}    
+\end{align}
+for $u = \mrange{1}{K}$.
+Suppose we desire the parameters to be positive values.
+Instead of inferring $\dymtheta$ directly, the reparameterization trick transforms the cost function $cost_{\dymtheta}$ into a new cost function $cost_{\dymthetatilde}$, where we define $\dymtheta = [\mrange{\dymthetam{1}}{\dymthetam{M}}]^\top = [\mrange{e^{\dymthetatildem{1}}}{e^{\dymthetatildem{M}}}]^\top$. 
+Because the exponential function is monotonic, we can therefore first find $\dymthetatilde^*$ that minimizes the new cost
+\begin{align}
+    \dymthetatilde^* 
+    & = 
+    \argmin_{\dymthetatilde}{
+        cost_{\dymtheta}(\dymX,e^{\dymthetatilde},\dymm,\dymLambda)
+    }
+    \nonumber
+    \\
+    & = 
+    \argmin_{\dymthetatilde}{
+        \sum_k{
+            \ln{
+                \mathcal{N}(\mvector{f}_k(\mvector{X}, e^{\widetilde{\mvector{\theta}}}) \vert\dymmk{k},\dyminvLambdak{k}))}}}    
+\end{align}
+and then exponentiate it element-wise to obtain an estimation for $\dymtheta^* = [\mrange{e^{\dymthetatildem{1}^*}}{e^{\dymthetatildem{M}^*}}]^\top$, which would correspond to the configuration that minimizes the original $cost_{\dymtheta}$.
+Since $e^r > 0$ for any $r \in \R$, we essentially restrict $\dymtheta^*$ to only contain positive values.
+
+Analogously, the positivity constraint on states can be achieved by transforming the cost function $cost_{\dymxk{u}}$ into its equivalent $cost_{\dymxtildek{u}}$, where we define $\dymxk{u} = [\mrange{e^{\dymxtildexktn{u}{1}}}{e^{\dymxtildexktn{u}{N}}}]^\top$ for $u = \mrange{1}{K}$.
+Using the chain rule, the vector field after the transformation is given by
+\begin{align}
+    \frac{d\mvector{\widetilde{x}}(t)}{dt}
+    =  
+    \frac{
+        \mvector{f}(
+        e^{\mvector{\widetilde{x}}(t)}, \dymtheta)}{e^{\mvector{\widetilde{x}}(t)}}
+\end{align}
+Note that the application of the positivity constraint on states is flexible in the sense that not all the states are required to be constrained at the same time.
+Also, the constraint can theoretically be applied to both the parameters and the states at the same time.
+
+To distinguish from the unconstrained Laplace mean-field approximation, we use the term \algolpmfpos\ to refer to this extension.
+The pseudocode for this extension is essentially the same as \refalgorithm{\ref{algo-lpmf}} except for the replacement of the optimization functions and variables with the extra step to transform the inference result back to the original variables at the end.
+
+One caveat for this approach is that the covariance matrix calculated for the transformed variables cannot be transformed back to the original variables easily.
+Also, interpretability from a probabilistic point of view is lost since exponentiation is a non-linear operation and rigorous treatment of the change of random variables would require the evaluation of the relevant Jacobian determinant, which is computationally very expensive.
