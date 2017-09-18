@@ -15,28 +15,23 @@ def main():
     dynamical_name = argv[2].strip()
     repetition_num = argv[3]
 
-    (spl_t_0, spl_t_T, spl_tps, spl_freq,
-     obs_t_0, obs_t_T, obs_freq, obs_tps, obs_t_indices,
-     est_t_0, est_t_T, est_freq, est_tps, est_t_indices,
-     X_0, theta, rho_2, phi, sigma_2, delta, gamma,
-     opt_method, opt_tol, max_init_iter, max_iter, plotting_enabled, plotting_freq,
-     spl_X) = utils.load_ode_config(directory, utils.CONFIG_FILENAME)
+    config = core.Config()
+    config.load_config(directory, utils.CONFIG_FILENAME)
 
     if dynamical_name == 'lorenz-96':
-        dynamical = dynamicals.Lorenz96(X_0.size)
+        dynamical = dynamicals.Lorenz96(config.X_0.size)
     else:
         raise ValueError('Unknown dynamical system {}'.format(dynamical_name))
 
-    obs_Y = utils.collect_observations(spl_X, obs_t_indices, sigma_2)
-    data = core.laplace_mean_field(dynamical,
-                                   spl_X, spl_tps,
-                                   obs_Y, obs_tps, obs_t_indices,
-                                   est_tps, est_t_indices,
-                                   theta, rho_2, phi, sigma_2, delta, gamma,
-                                   opt_method, opt_tol, max_init_iter, max_iter,
-                                   plotting_enabled, plotting_freq)
-    data['obs_Y'] = obs_Y
-    utils.save_data(directory, utils.DATA_FILENAME.format(repetition_num), data)
+    config.obs_Y = utils.collect_observations(config.spl_X, config.obs_t_indices, config.sigma_2)
+
+    gp = core.GaussianProcessRegression(dynamical, config)
+    gp.run()
+
+    lpmf = core.LaplaceMeanFieldSDE(dynamical, config, gp)
+    lpmf.run()
+
+    lpmf.save_result(directory, utils.DATA_FILENAME.format(repetition_num))
 
 if __name__ == "__main__":
     main()

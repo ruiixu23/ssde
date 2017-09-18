@@ -206,15 +206,6 @@ $K$ & $K_{obs}$ & $t_0$ & $t_T$ & $\delta t$ & $k_1, k_2, k_3, k_4, V, Km$ & $\d
     \label{fig-protein-parameters-without-km}
 \end{figure}
 
-In this experiment, the parameter $K_m$ is not inferred but all the states are directly inferred.
-This setup includes the $Rpp$ state that violates the structural assumption, which is not possible using the \algovgmgp\ method.
-The results after 10 independent repetitions are shown in \reffigure{\ref{fig-protein-states-without-km}} and \reffigure{\ref{fig-protein-parameters-without-km}}.
-For state estimation, the overall trend of the states is captured by the learning algorithm.
-Since there are much fewer observations toward the end of the time point, the prediction becomes worse.
-The parameter estimation result is not ideal in comparison to the states.
-
-\subsubsection*{Partial observation}
-
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{graphics/protein-states-without-km-partial}
@@ -228,6 +219,15 @@ The parameter estimation result is not ideal in comparison to the states.
     \caption{Parameter estimation results for the protein signaling transduction pathway model with the parameter $K_m$ set to constant and the state $S$ unobservable. In the box plot, the median is indicated by the red line, while the mean is shown as the green diamond. The box shows the lower and upper quartiles, while the whiskers are the 5th and 95th percentiles. The true parameter values are indicated by the blue crosses.}
     \label{fig-protein-parameters-partial-without-km}
 \end{figure}
+
+In this experiment, the parameter $K_m$ is not inferred but all the states are directly inferred.
+This setup includes the $Rpp$ state that violates the structural assumption, which is not possible using the \algovgmgp\ method.
+The results after 10 independent repetitions are shown in \reffigure{\ref{fig-protein-states-without-km}} and \reffigure{\ref{fig-protein-parameters-without-km}}.
+For state estimation, the overall trend of the states is captured by the learning algorithm.
+Since there are much fewer observations toward the end of the time point, the prediction becomes worse.
+The parameter estimation result is not ideal in comparison to the states.
+
+\subsubsection*{Partial observation}
 
 To increase the difficult of the problem, the observations on the state $S$ is masked out.
 The results after 10 independent repetitions is shown in \reffigure{\ref{fig-protein-states-partial-without-km}} and \reffigure{\ref{fig-protein-parameters-partial-without-km}}.
