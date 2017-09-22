@@ -1,0 +1,345 @@
+\begin{frame}[t]
+    \frametitle{Laplace mean-field approximation}
+    Positing the following factorized proxy distribution:
+    \begin{align}
+        Q(\dymX,\dymtheta) 
+        & = 
+        q(\dymtheta\vert\dymetatheta,\dymXitheta)
+        \prod_u{
+            q(\dymxk{u}\vert\dymetaxk{u},\dymXixk{u})}
+        \nonumber
+        \\
+        & = \mathcal{N}(\dymtheta\vert\dymetatheta, \dymXitheta)
+        \prod_u{
+            \mathcal{N}(\dymxk{u}\vert\dymetaxk{u},\dymXixk{u})
+        }
+    \end{align}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Conditional probability $p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymtheta,\dymsigma,\dymgamma)$}
+    Denoting $\dymXwithoutk{u} = \{\dymxk{o}\vert o = \mrange{1}{K}\ \text{and}\ o \neq u \}$, for $u = \mrange{1}{K}$, we have
+    \begin{align} 
+        p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymtheta,\dymsigma,\dymgamma)       
+        & =     
+        \int{
+            p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymsigma) p(\dymdX\vert\dymxk{u},\dymXwithoutk{u},\dymphi,\dymtheta,\dymgamma) d\dymdX}
+        \nonumber
+        \\
+        & \stackrel{(b)}{=}         
+        \int{
+            p(\dymxk{u}\vert\dymyk{u},\dymphik{k},\dymsigmak{k}) p(\dymdX\vert\dymX,\dymphi,\dymtheta,\dymgamma) d\dymdX}
+        \nonumber
+        \\             
+        & \propto
+        \mathcal{N}(\dymxk{u}\vert\dymmuk{u},\dymSigmak{u})\prod_k{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
+        \label{eq-laplace-xu-objective}
+    \end{align}
+    where (b) holds because 
+    \begin{itemize}
+        \item[-] $p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymsigma)$ depends only on $\dymyk{u}$ due to independent prior assumption,
+        \item[-] $p(\dymdX\vert\dymxk{u},\dymXwithoutk{u},\dymphi,\dymtheta,\dymgamma)$ is equivalent to $p(\dymdX\vert\dymX,\dymphi,\dymtheta,\dymgamma)$.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Cost minimization for states}
+    The mean vector and precision matrix of $q(\dymxk{u}\vert\dymetaxk{u},\dymXixk{u})$ for $u = \mrange{1}{K}$ are given by
+    \begin{align}
+        \dymetaxk{u}
+        & =     
+        \argmax_{\dymxk{u}}{
+            \ln{[
+                \mathcal{N}(\dymxk{u}\vert\dymmuk{u},\dymSigmak{u})\prod_k{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
+            ]}
+        }
+        \nonumber
+        \\
+        & =     
+        \argmax_{\dymxk{u}}{[
+            \ln{\mathcal{N}(\dymxk{u}\vert\dymmuk{u},\dymSigmak{u})} 
+            + \sum_k{
+                \ln{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
+            }]}
+        \nonumber
+        \\
+        & =
+        \argmin_{\dymxk{u}}{
+            \frac{1}{2}[(\dymxk{u} - \dymmuk{u})^T\dyminvSigmak{u}(\dymxk{u} - \dymmuk{u})
+            + \sum_k{
+                (\dymfkXshort{k} - \dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k} - \dymmk{k})        
+            }]
+        }
+        \nonumber
+        \\
+        & =
+        \argmin_{\dymxk{u}}{
+            cost_{\dymxk{u}}(\dymxk{u},\dymXwithoutk{u},\dymtheta,\dymmuk{u},\dymSigmak{u},\dymm,\dymLambda)
+        }
+        \label{eq-laplace-xu-cost}
+        \\
+        \dymXixk{u}^{-1} 
+        & = 
+        \nabla\nabla cost_{\dymxk{u}}\vert_{\dymxk{u} = \dymetaxk{u}}
+        \label{eq-laplace-xu-covariance}
+    \end{align}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Conditional probability $p(\dymtheta\vert\dymY,\dymX,\dymphi,\dymgamma)$}
+    For $p(\dymtheta\vert\dymY,\dymX,\dymphi,\dymgamma)$, we have
+    \begin{align}
+        p(\dymtheta\vert\dymY,\dymX,\dymphi,\dymgamma) 
+        & \stackrel{(a)}{=} 
+        p(\dymtheta\vert\dymX,\dymphi,\dymgamma) 
+        \nonumber
+        \\        
+        & = 
+        \int{
+            p(\dymtheta) p(\dymdX\vert\dymX,\dymphi,\dymtheta,\dymgamma)d\dymdX}
+        \nonumber
+        \\               
+        & \propto 
+        \prod_k{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
+        \label{eq-laplace-theta-objective}
+    \end{align}
+    where $(a)$ holds since $\dymtheta$ depends indirectly on $\dymY$ through $\dymX$.
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Cost minimization for parameters}
+    Denoting $\dymfkXshort{k} = \dymfkX{k}$, $\dymm = [\mrange{\dymmk{1}}{\dymmk{K}}]$, and $\dymLambda = [\mrange{\dymLambdak{1}}{\dymLambdak{K}}]$, then mean vector and precision matrix of $p(\dymtheta\vert\dymY,\dymX,\dymphi,\dymgamma)$ are given by
+    \begin{align}
+        \dymetatheta
+        & = 
+        \argmax_{\dymtheta}{
+            \ln{
+                \prod_k{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
+            }
+        }
+        \nonumber
+        \\
+        & = 
+        \argmax_{\dymtheta}{
+            \sum_k{
+                \ln{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
+            }}
+        \nonumber
+        \\
+        & =
+        \argmin_{\dymtheta}{
+            \frac{1}{2}\sum_k{
+                (\dymfkXshort{k} - \dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k} - \dymmk{k})
+            }
+        }
+        \nonumber
+        \\
+        & = 
+        \argmin_{\dymtheta}{
+            cost_{\dymtheta}(\dymX,\dymtheta,\dymm,\dymLambda)
+        }
+        \label{eq-laplace-theta-cost}
+        \\
+        \dymXitheta^{-1} 
+        & = 
+        \nabla\nabla cost_{\dymtheta}\vert_{\dymtheta = \dymetatheta}  
+        \label{eq-laplace-theta-covariance}    
+    \end{align} 
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Inference algorithm}
+    \begin{itemize}
+        \item[-] Initialize using Gaussian process regression
+        \item[-] Repeat until convergence or maximum iteration
+        \begin{itemize}
+            \item[-] Update $\dymtheta$ while keeping the others fixed
+            \item[-] For $u = \mrange{1}{K}$, update $\dymxk{u}$ while keeping the others fixed
+        \end{itemize}
+        \item[-] Calculate precision matrices
+    \end{itemize}    
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Derivation for the gradients and Hessians}
+    Recall that $cost_{\dymxk{u}}$ for state $u$ is given by
+    \begin{align}
+        cost_{\dymxk{u}}
+        =
+            \frac{1}{2}[(\dymxk{u} - \dymmuk{u})^T\dyminvSigmak{u}(\dymxk{u} - \dymmuk{u})
+            + \sum_k{
+                (\dymfkXshort{k} - \dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k} - \dymmk{k})        
+            }]
+        \nonumber
+    \end{align}
+    
+    \vspace{\baselineskip}
+    Using matrix derivative and the fact that $\dyminvSigmak{u}$ is symmetric, we have
+    \begin{align}
+        \nabla_{\dymxk{u}}\frac{1}{2}(\dymxk{u} - \dymmuk{u})^T\dyminvSigmak{u}(\dymxk{u} - \dymmuk{u}) 
+        = \dyminvSigmak{u}\dymxk{u}
+        \label{eq-laplace-mu-gradient}
+        \\
+        \nabla\nabla_{\dymxk{u}}\frac{1}{2}(\dymxk{u} - \dymmuk{u})^T\dyminvSigmak{u}(\dymxk{u} - \dymmuk{u}) 
+        = \dyminvSigmak{u}
+        \label{eq-laplace-mu-hessian}
+    \end{align}    
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Derivation for the gradients and Hessians}
+    Using \emph{chain rule} and the fact that $\dymLambdak{k}$ is symmetric, we have
+    \begin{align}
+        & \nabla_{\dymxk{u}}\frac{1}{2}(\dymfkXshort{k}-\dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})
+        \nonumber
+        \\
+        = &
+        \begin{bmatrix}
+            \frac{\partial(\dymfkXshort{k})_1}{\partial \dymxktn{u}{1}} 
+            & 
+            \cdots 
+            & 
+            \frac{\partial(\dymfkXshort{k})_N}{\partial \dymxktn{u}{1}}
+            \\
+            \vdots 
+            &
+            \ddots
+            &
+            \vdots
+            \\
+            \frac{\partial(\dymfkXshort{k})_1}{\partial \dymxktn{u}{N}} 
+            &
+            \cdots
+            &
+            \frac{\partial(\dymfkXshort{k})_N}{\partial \dymxktn{u}{N}} 
+        \end{bmatrix}
+        \dymLambdak{k}(\dymfkXshort{k}-\dymmk{k}) 
+        \nonumber
+        \\
+        & -
+        \begin{bmatrix}
+            \frac{\partial(\dymmk{k})_1}{\partial \dymxktn{u}{1}} 
+            & 
+            \cdots 
+            & 
+            \frac{\partial(\dymmk{k})_N}{\partial \dymxktn{u}{1}}
+            \\
+            \vdots 
+            &
+            \ddots
+            &
+            \vdots
+            \\
+            \frac{\partial(\dymmk{k})_1}{\partial \dymxktn{u}{N}} 
+            &
+            \cdots
+            &
+            \frac{\partial(\dymmk{k})_N}{\partial \dymxktn{u}{N}} 
+        \end{bmatrix}
+        \dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})  
+    \end{align}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Derivation for the gradients and Hessians}
+    The $(i, j)$-th entry of the Hessian is given by
+    \begin{align}
+        &\frac{
+            \partial^{2}\frac{1}{2}(\dymfkXshort{k}-\dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})}{
+            \partial\dymxktn{u}{i}\partial\dymxktn{u}{j}}
+        \nonumber
+        \\
+        = & \begin{bmatrix}
+            \frac{\partial^2(\dymfkXshort{k}-\dymmk{k})_1}{\partial\dymxktn{u}{i}\partial\dymxktn{u}{j}}
+            &
+            \cdots
+            &
+            \frac{\partial^2(\dymfkXshort{k}-\dymmk{k})_N}{\partial\dymxktn{u}{i}\partial\dymxktn{u}{j}}
+        \end{bmatrix}
+        \dymLambdak{k}(\dymfkXshort{k}-\dymmk{k}) 
+        \nonumber
+        \\
+        & + 
+        \begin{bmatrix}
+            \frac{\partial(\dymfkXshort{k}-\dymmk{k})_1}{\partial\dymxktn{u}{j}}
+            &
+            \cdots
+            &
+            \frac{\partial(\dymfkXshort{k}-\dymmk{k})_N}{\partial\dymxktn{u}{j}}
+        \end{bmatrix}
+        \dymLambdak{k}
+        \begin{bmatrix}
+            \frac{\partial(\dymfkXshort{k}-\dymmk{k})_1}{\partial\dymxktn{u}{i}}
+            \\
+            \vdots
+            \\
+            \frac{\partial(\dymfkXshort{k}-\dymmk{k})_N}{\partial\dymxktn{u}{i}}
+        \end{bmatrix}
+    \end{align}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Positivity constraint}
+    Let
+    \begin{align}
+        \dymtheta = [\mrange{\dymthetam{1}}{\dymthetam{M}}]^\top = [\mrange{e^{\dymthetatildem{1}}}{e^{\dymthetatildem{M}}}]^\top        
+    \end{align}
+    
+    Since the exponential function is monotonic, we can first find
+    \begin{align}
+        \dymthetatilde^* 
+        & = 
+        \argmin_{\dymthetatilde}{
+            cost_{\dymtheta}(\dymX,e^{\dymthetatilde},\dymm,\dymLambda)
+        }
+        \nonumber
+        \\
+        & = 
+        \argmin_{\dymthetatilde}{
+            \sum_k{
+                \ln{
+                    \mathcal{N}(\mvector{f}_k(\mvector{X}, e^{\widetilde{\mvector{\theta}}}) \vert\dymmk{k},\dyminvLambdak{k}))}}}    
+    \end{align}
+    and then obtain $\dymtheta^*$ as
+    \begin{align}
+        \dymtheta^* = [\mrange{e^{\dymthetatildem{1}^*}}{e^{\dymthetatildem{M}^*}}]^\top
+    \end{align}
+    
+    Since $e^r > 0$ for any $r \in \R$, we essentially restrict $\dymtheta^*$ to positive values.
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Positivity constraint}
+    The positivity constraint on states can be achieved by transforming $cost_{\dymxk{u}}$ to $cost_{\dymxtildek{u}}$, where we define for $u = \mrange{1}{K}$
+    \begin{align}
+        \dymxk{u} = [\mrange{\dymxktn{u}{1}}{\dymxktn{u}{N}}]^\top = [\mrange{e^{\dymxtildexktn{u}{1}}}{e^{\dymxtildexktn{u}{N}}}]^\top
+    \end{align}
+    
+    \vspace{\baselineskip}
+    Using chain rule, we have for $u = \mrange{1}{K}$ and $n = \mrange{1}{N}$ the following:
+    \begin{align}
+        \frac{d\widetilde{x}_{u}(t_n)}{dt}
+        & =
+        \frac{d\ln{{x}_{u}(t_n)}}{dt}
+        \nonumber
+        \\
+        & =
+        \frac{1}{{x}_{u}(t_n)}\frac{d{x}_{u}(t_n)}{dt}
+        \nonumber
+        \\
+        & =  
+        \frac{
+            f_{u}(
+            e^{\mvector{\widetilde{x}}(t_n)}, \dymtheta)}{e^{\widetilde{x}(t_n)}}
+    \end{align}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Positivity constraint}
+    Caveats
+    \\
+    \begin{itemize}
+        \item[-] The covariance matrix for the new variables cannot be transformed back to the original variables easily.
+        \item[-] Probabilistic interpretability is lost since proper change of random variables requires the evaluation of the Jacobian determinant, which is computationally expensive.
+    \end{itemize}
+\end{frame}

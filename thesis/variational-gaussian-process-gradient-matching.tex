@@ -279,9 +279,9 @@ To illustrate, we write the joint distribution of $\dymxk{k}$ and $\dymdxk{k}$ a
 
 \begin{align}
     \begin{bmatrix}
-        \mdata{\dymxk{k}} 
+        \dymxk{k}
         \\ 
-        \mdata{\dymdxk{k}}
+        \dymdxk{k}
     \end{bmatrix}
     & \sim 
     \mathcal{N}(
@@ -296,7 +296,8 @@ To illustrate, we write the joint distribution of $\dymxk{k}$ and $\dymdxk{k}$ a
             \\ 
             \dymdCphik{k} & \dymdCdphik{k}
         \end{bmatrix}
-    ) \nonumber
+    ) 
+    \nonumber
     \intertext{where}
     \dymCphikij{k} 
     & = \dymkernel{k}(\dymtn{i}, \dymtn{j})
@@ -377,8 +378,8 @@ where $p(\dymphi)$, $p(\dymtheta)$, $p(\dymsigma)$, and $p(\dymgamma)$ denote th
 \begin{align}
     p(\dymtheta,\dymgamma\vert\dymX,\dymphi) 
     & =
-    p(\dymtheta) p(\dymgamma) \int{
-        p(\dymdX\vert\dymX,\dymtheta,\dymphi,\dymgamma)d\dymdX}
+    \int{
+        p(\dymtheta) p(\dymgamma) p(\dymdX\vert\dymX,\dymtheta,\dymphi,\dymgamma)d\dymdX}
     \nonumber
     \\
     & \propto
@@ -406,13 +407,14 @@ Then the sampling procedure follows the scheme below
 where 
 \begin{align}
     p(\dymphi, \dymsigma\vert\dymY) 
-    & \propto p(\dymphi)p(\dymsigma)p(\dymY\vert\dymphi,\dymsigma) 
+    & \propto p(\dymphi) p(\dymsigma) p(\dymY\vert\dymphi,\dymsigma) 
     \nonumber
     \\
-    & \propto p(\dymphi)p(\dymsigma)\int{p(\dymX\vert\dymphi)p(\dymY\vert\dymX,\dymsigma)d\dymX}
+    & \propto \int{
+        p(\dymphi) p(\dymsigma) p(\dymX\vert\dymphi) p(\dymY\vert\dymX,\dymsigma)d\dymX}
     \nonumber
     \\
-    & = p(\dymphi)p(\dymsigma)\prod_k{\mathcal{N}(\dymyk{k}\vert\mvector{0}, \dymCphik{k} + \dymsigmak{k}^2\mI)}    
+    & = p(\dymphi) p(\dymsigma)\prod_k{\mathcal{N}(\dymyk{k}\vert\mvector{0}, \dymCphik{k} + \dymsigmak{k}^2\mI)}    
     \nonumber
 \end{align}
 
@@ -431,8 +433,8 @@ To close the feedback loop, \cite{dondelinger2013ode} proposed an improved sampl
         }
     \nonumber
     \\
-    & = p(\dymX\vert\dymphi) p(\dymphi) p(\dymtheta) p(\dymgamma) \int{
-        p(\dymdX\vert\dymX,\dymphi,\dymtheta,\dymgamma) d\dymdX}
+    & = \int{
+        p(\dymX\vert\dymphi) p(\dymphi) p(\dymtheta) p(\dymgamma) p(\dymdX\vert\dymX,\dymphi,\dymtheta,\dymgamma) d\dymdX}
     \nonumber
     \\
     & \propto \exp{[
@@ -468,12 +470,12 @@ By combining the prior $p(\dymtheta)$, the state posterior  \refequationp{\ref{e
 \begin{align}
     p(\dymX,\dymtheta\vert\dymY,\dymphi,\dymsigma,\dymgamma) 
     & = 
-    p(\dymtheta)\int{
-        p(\dymX\vert\dymY,\dymphi,\dymsigma) p(\dymdX\vert\dymX,\dymtheta,\dymphi,\dymgamma) d\dymdX
+    \int{
+        p(\dymtheta)p(\dymX\vert\dymY,\dymphi,\dymsigma) p(\dymdX\vert\dymX,\dymtheta,\dymphi,\dymgamma) d\dymdX
     }
     \nonumber
     \\
-    & \propto
+    & \propto         
     p(\dymtheta) \prod_k{[
         \mathcal{N}(\dymxk{k}\vert\dymmuk{k}, \dymSigmak{k}) 
         \mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})]}    
@@ -498,12 +500,12 @@ As a workaround, \cite{gorbach2017scalable} designed a proxy distribution on the
 
 First of all, the ODEs primarily considered by \cite{gorbach2017scalable} are state-wise of the following structure:
 \begin{align}
-    \dymfk{k} = \sum_m{\dymthetam{m}\prod_{i\in\mathcal{M}_{km}}{\dymxktn{i}{}}} + C
-    \label{eq-vgmgp-odes}\
+    \dymfk{k} = \sum_m{\dymthetam{m}\prod_{i\in\mathcal{M}_{km}}{\dymxktn{i}{}}} + \sum_j{C_j}
+    \label{eq-vgmgp-odes}
 \end{align}
-for $k = \mrange{1}{K}$, where $\mathcal{M}_{km}$ contains the states in the $k$-th equation of the ODEs that are controlled by the $m$-th parameter $\dymthetam{m}$, and $C$ denotes other terms that are independent of the parameters.
+for $k = \mrange{1}{K}$, where $\mathcal{M}_{km}$ contains the states in the $k$-th equation of the ODEs that are controlled by the $m$-th parameter $\dymthetam{m}$, and $C_j$ is a term that is independent of the parameters.
 The first term of \refequationp{\ref{eq-vgmgp-odes}} can be viewed as a linear combination of the parameters and the product of the monomials of the states.
-For the second term, the only requirement on terms in $C$ is that each state can only appear as monomial inside a term, but a term in $C$ can contain the product of the monomials of the states.
+For the second term, the requirement $C_j$ is that each state can only appear as monomial inside $C_j$, but $C_j$ can contain the product of the monomials of the states.
 
 The structural assumption imposed on the ODEs leads to an important conclusion that the  following conditional distributions $p(\dymtheta\vert\dymY,\dymX,\dymphi,\dymgamma)$ and $p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymtheta,\dymsigma,\dymgamma)$ for $u = \mrange{1}{K}$ are Gaussian distributed, where $\dymXwithoutk{u} = \{\dymxk{o}\vert o = \mrange{1}{K}\ \text{and}\ o \neq u \}$, i.e.\ $\dymXwithoutk{u}$ is the set of all states except $\dymxk{u}$. 
 But before writing out the distributions, we first need to introduce several more notations. 
@@ -553,11 +555,15 @@ As a side note, this conclusion will also be used later in \refchapter{\ref{ch-l
 
 To simplify the notations, in the following, we will switch to the canonical form of \emph{exponential family} \citep[\refsection{9.2}]{murphy2012machine} to describe the distributions \refequationp{\ref{eq-vgmgp-theta-conditional}} and \refequationp{\ref{eq-vgmgp-xu-conditional}} as:
 \begin{align}
-    p(\dymtheta\vert\dymY,\dymX,\dymphi,\dymgamma)
+    & p(\dymtheta\vert\dymY,\dymX,\dymphi,\dymgamma)
+    \nonumber
+    \\
     & = \dymhthetacanonical \exp{(\dymetathetacanonical^T\dymTthetacanonical - \dymAthetacanonical)}
     \label{eq-vgmgp-theta-conditional-canonical}
     \\
-    p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymtheta,\dymsigma,\dymgamma)
+    & p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymtheta,\dymsigma,\dymgamma)
+    \nonumber
+    \\
     & = \dymhucanonical \exp{(\dymetaucanonical^T\dymTucanonical - \dymAucanonical)}
     \label{eq-vgmgp-xu-conditional-canonical}
 \end{align}

@@ -1,0 +1,296 @@
+%% Custom commands
+%% ===============
+
+%% Special characters for number sets, e.g. real or complex numbers.
+%\newcommand{\C}{\mathbb{C}}
+\newcommand{\K}{\mathbb{K}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\X}{\mathbb{X}}
+
+%% Fixed/scaling delimiter examples (see mathtools documentation)
+%\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+%\DeclarePairedDelimiter\norm{\lVert}{\rVert}
+
+%% Use the alternative epsilon per default and define the old one as \oldepsilon
+\let\oldepsilon\epsilon
+\renewcommand{\epsilon}{\ensuremath\varepsilon}
+
+%% Also set the alternate phi as default.
+\let\oldphi\phi
+\renewcommand{\phi}{\ensuremath{\varphi}}
+
+\newcommand{\mvector}[1]{\boldsymbol{#1}}
+\newcommand{\mdata}[1]{\mathrm{#1}}
+\newcommand{\mrange}[2]{#1,\dots,#2}
+\newcommand{\mI}[0]{\mvector{I}}
+
+\newcommand{\refchapter}[1]{Chapter #1}
+\newcommand{\refchapterp}[1]{(Chapter #1)}
+\newcommand{\refsection}[1]{Section #1}
+\newcommand{\refsectionp}[1]{(\refsection{#1})}
+\newcommand{\refequationp}[1]{(Eq.\ #1)}
+\newcommand{\reffigure}[1]{Figure #1}
+\newcommand{\refalgorithm}[1]{Algorithm #1}
+\newcommand{\reftable}[1]{Table #1}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\defeq}{\vcentcolon=}
+\newcommand{\eqdef}{=\vcentcolon}
+
+% Y, X, dX, E
+\newcommand{\dymY}[0]{\mdata{Y}}
+\newcommand{\dymX}[0]{\mdata{X}}
+\newcommand{\dymdX}[0]{\mdata{\dot{X}}}
+\newcommand{\dymE}[0]{\mdata{E}}
+
+\newcommand{\dymXwithoutk}[1]{\dymX_{/\{#1\}}}
+
+\newcommand{\dymXtilde}[0]{\mdata{\widetilde{X}}}
+
+% y(t), x(t), dx(t)
+\newcommand{\dymy}[0]{\mvector{y}(t)}
+\newcommand{\dymx}[0]{\mvector{x}(t)}
+\newcommand{\dymdx}[0]{\mvector{\dot{x}}(t)}
+
+% y_k, x_k, dx_k
+\newcommand{\dymyk}[1]{\mvector{y}_{#1}}
+\newcommand{\dymxk}[1]{\mvector{x}_{#1}}
+\newcommand{\dymdxk}[1]{\mvector{\dot{x}}_{#1}}
+
+\newcommand{\dymxtildek}[1]{\mvector{\widetilde{x}}_{#1}}
+
+% y(t_n), x(t_n), dx(t_n)
+\newcommand{\dymytn}[1]{\mvector{y}(t_{#1})}
+\newcommand{\dymxtn}[1]{\mvector{x}(t_{#1})}
+\newcommand{\dymdxtn}[1]{\mvector{\dot{x}}(t_{#1})}
+
+% y_k(t_n), x_k(t_n), dx_k(t_n)
+\newcommand{\dymyktn}[2]{y_{#1}(t_{#2})}
+\newcommand{\dymxktn}[2]{x_{#1}(t_{#2})}
+\newcommand{\dymdxktn}[2]{\dot{x}_{#1}(t_{#2})}
+
+\newcommand{\dymxhatktn}[2]{\hat{x}_{#1}(t_{#2})}
+\newcommand{\dymxtildexktn}[2]{\widetilde{x}_{#1}(t_{#2})}
+
+% Theta
+\newcommand{\dymtheta}[0]{\mvector{\theta}}
+\newcommand{\dymthetam}[1]{\theta_{#1}}
+\newcommand{\dymthetatilde}[0]{\mvector{\widetilde{\theta}}}
+\newcommand{\dymthetatildem}[1]{\widetilde{\theta}_{#1}}
+
+% f
+\newcommand{\dymf}[0]{\mvector{f}(\dymx, \dymtheta)}
+\newcommand{\dymfshort}[0]{\mvector{f}}
+\newcommand{\dymfk}[1]{f_{#1}(\dymx, \dymtheta)}
+\newcommand{\dymftn}[1]{\mvector{f}(\mvector{x}(t_{#1}), \dymtheta)}
+
+\newcommand{\dymfX}[0]{\mvector{f}(\dymX, \dymtheta)}
+\newcommand{\dymfkX}[1]{\mvector{f}_{#1}(\dymX, \dymtheta)}
+
+\newcommand{\dymfkXshort}[1]{\mvector{f}_{#1}}
+
+% t
+\newcommand{\dymt}[0]{t}
+\newcommand{\dymtn}[1]{t_{#1}}
+
+% Epsilon
+\newcommand{\dymepsilon}[0]{\mvector{\epsilon}}
+\newcommand{\dymepsilont}[0]{\mvector{\epsilon}(t)}
+\newcommand{\dymepsilontn}[1]{\mvector{\epsilon}(t_{#1})}
+
+% Sigma
+\newcommand{\dymsigma}[0]{\mvector{\sigma}}
+\newcommand{\dymsigmak}[1]{\sigma_{#1}}
+
+% Phi
+\newcommand{\dymphi}[0]{\mvector{\phi}}
+\newcommand{\dymphik}[1]{\mvector{\phi}_{#1}}
+
+% Kernel
+\newcommand{\dymkernel}[1]{\mathcal{K}_{\dymphik{#1}}}
+
+% C_phi
+\newcommand{\dymCphik}[1]{\mvector{C}_{\mvector{\phi}_{#1}}}
+\newcommand{\dyminvCphik}[1]{\dymCphik{#1}^{-1}}
+\newcommand{\dymCphikij}[1]{C_{\mvector{\phi}_{#1}i, j}}
+
+% dC_phi
+\newcommand{\dymdCphik}[1]{{}^{\prime}\mvector{C}_{\mvector{\phi}_{#1}}}
+\newcommand{\dymdCphikij}[1]{{}^{\prime}C_{\mvector{\phi}_{#1}i, j}}
+
+% Cd_phi
+\newcommand{\dymCdphik}[1]{\mvector{C}^{\prime}_{\mvector{\phi}_{#1}}}
+\newcommand{\dymCdphikij}[1]{C^{\prime}_{\mvector{\phi}_{#1}i, j}}
+
+% dCd_phi
+\newcommand{\dymdCdphik}[1]{\mvector{C}^{\prime\prime}_{\mvector{\phi}_{#1}}}
+\newcommand{\dymdCdphikij}[1]{C^{\prime\prime}_{\mvector{\phi}_{#1}i, j}}
+
+% mu
+\newcommand{\dymmu}[0]{\mvector{\mu}}
+\newcommand{\dymmuk}[1]{\dymmu_{#1}(\dymyk{#1})}
+
+% Sigma
+\newcommand{\dymSigma}[0]{\mvector{\Sigma}}
+\newcommand{\dymSigmak}[1]{\dymSigma_{#1}}
+\newcommand{\dyminvSigmak}[1]{\dymSigmak{#1}^{-1}}
+
+% m
+\newcommand{\dymm}[0]{\mvector{m}}
+\newcommand{\dymmk}[1]{\dymm_{#1}}
+
+% A
+\newcommand{\dymAk}[1]{\mvector{A}_{#1}}
+
+% Lambda
+\newcommand{\dymLambda}[0]{\mvector{\Lambda}}
+\newcommand{\dymLambdak}[1]{\dymLambda_{#1}}
+\newcommand{\dyminvLambdak}[1]{\dymLambdak{#1}^{-1}}
+
+% gamma
+\newcommand{\dymgamma}[0]{\mvector{\gamma}}
+\newcommand{\dymgammak}[1]{\gamma_{#1}}
+
+% r theta
+\newcommand{\dymrtheta}[0]{\mvector{r}_{\dymtheta}}
+
+% Omega theta
+\newcommand{\dymOmegatheta}[0]{\mvector{\Omega}_{\dymtheta}}
+\newcommand{\dyminvOmegatheta}[0]{\dymOmegatheta^{-1}}
+
+% r u
+\newcommand{\dymru}[0]{\mvector{r}_{u}}
+
+% Omega u
+\newcommand{\dymOmegau}[0]{\mvector{\Omega}_{u}}
+\newcommand{\dyminvOmegau}[0]{\dymOmegau^{-1}}
+
+% B theta, b theta
+\newcommand{\dymBthetakX}[1]{\mvector{B}_{\dymtheta{#1}}}
+\newcommand{\dymbthetakX}[1]{\mvector{b}_{\dymtheta{#1}}}
+
+% B u, b u
+\newcommand{\dymBukX}[1]{\mvector{B}_{u{#1}}}
+\newcommand{\dymbukX}[1]{\mvector{b}_{u{#1}}}
+
+% Canonical
+\newcommand{\dymetacanonical}[0]{\mvector{\eta}_{(\cdot)}(\cdot)}
+\newcommand{\dymTcanonical}[0]{\mvector{T}_{(\cdot)}(\cdot)} 
+\newcommand{\dymAcanonical}[0]{A_{(\cdot)}(\cdot)}
+\newcommand{\dymhcanonical}[0]{h_{(\cdot)}(\cdot)}
+
+\newcommand{\dymetathetacanonical}[0]{\mvector{\eta}_{\dymtheta}(\dymY,\dymX,\dymphi,\dymgamma)}
+\newcommand{\dymTthetacanonical}[0]{\mvector{T}_{\dymtheta}(\dymtheta)}  
+\newcommand{\dymAthetacanonical}[0]{A_{\dymtheta}(\mvector{\eta}_{\dymtheta})}
+\newcommand{\dymhthetacanonical}[0]{h_{\dymtheta}(\dymtheta)}
+
+\newcommand{\dymetaucanonical}[0]{\mvector{\eta}_{u}(\dymY,\dymXwithoutk{u},\dymphi,\dymtheta,\dymsigma,\dymgamma)}
+\newcommand{\dymTucanonical}[0]{\mvector{T}_{u}(\dymxk{u})} 
+\newcommand{\dymAucanonical}[0]{A_{u}(\mvector{\eta}_{u})}
+\newcommand{\dymhucanonical}[0]{h_{u}(\dymxk{u})}
+
+% Variational parameters
+\newcommand{\dymlambdavi}[0]{\mvector{\lambda}}
+\newcommand{\dympsivi}[0]{\mvector{\psi}}
+\newcommand{\dympsiuvi}[0]{\mvector{\psi}_u}
+
+% Canonical Q
+\newcommand{\dymetathetacanonicalQ}[0]{\dymlambdavi}
+\newcommand{\dymTthetacanonicalQ}[0]{\mvector{T}_{q\dymtheta}(\dymtheta)}  
+\newcommand{\dymAthetacanonicalQ}[0]{A_{q\dymtheta}(\dymlambdavi)}
+\newcommand{\dymhthetacanonicalQ}[0]{h_{q\dymtheta}(\dymtheta)}
+
+\newcommand{\dymetaucanonicalQ}[0]{\dympsiuvi}
+\newcommand{\dymTucanonicalQ}[0]{\mvector{T}_{qu}(\dympsiuvi)} 
+\newcommand{\dymAucanonicalQ}[0]{A_{qu}(\dympsiuvi)}
+\newcommand{\dymhucanonicalQ}[0]{h_{qu}(\dymxk{u})}
+
+% Laplace approximation parameters
+\newcommand{\dymetaX}[0]{\mvector{\eta}_{\dymX}}
+\newcommand{\dymetaXwithoutk}[1]{\mvector{\eta}_{\dymXwithoutk{#1}}}
+\newcommand{\dymetaxk}[1]{\mvector{\eta}_{\dymxk{#1}}}
+\newcommand{\dymXixk}[1]{\mvector{\Xi}_{\dymxk{#1}}}
+\newcommand{\dyminvXixk}[1]{\mvector{\Xi}^{-1}_{\dymxk{#1}}}
+
+\newcommand{\dymetatheta}[0]{\mvector{\eta}_{\dymtheta}}
+\newcommand{\dymXitheta}[0]{\mvector{\Xi}_{\dymtheta}}
+\newcommand{\dyminvXitheta}[0]{\mvector{\Xi}^{-1}_{\dymtheta}}
+
+%% SDE
+\newcommand{\sdex}[0]{\dymx}
+\newcommand{\sdedx}[0]{d\dymx}
+\newcommand{\sdextn}[1]{\dymxtn{#1}}
+
+
+\newcommand{\sdef}[0]{\dymf}
+\newcommand{\sdeftn}[1]{\dymftn{#1}}
+\newcommand{\sdefshort}[0]{\mvector{f}}
+
+\newcommand{\sdetheta}[0]{\dymtheta}
+\newcommand{\sdethetam}[1]{\dymthetam{#1}}
+
+\newcommand{\sdedt}[0]{dt}
+
+\newcommand{\sderho}[0]{\mvector{\rho}}
+\newcommand{\sderhoq}[1]{\rho_{#1}}
+
+\newcommand{\sdeg}[0]{\mvector{g}(\dymx, \sderho)}
+\newcommand{\sdegw}[1]{\mvector{g}_{#1}(\dymx, \sderho)}
+\newcommand{\sdegwtn}[2]{\mvector{g}_{#1}(\dymxtn{#2}, \sderho)}
+\newcommand{\sdegshort}[0]{\mvector{g}}
+
+\newcommand{\sdewt}[0]{\mvector{W}_t}
+\newcommand{\sdewmtn}[2]{W^{#1}_{#2}}
+
+
+\newcommand{\sdedwt}[0]{d\mvector{W}_t}
+\newcommand{\sdedwmtn}[2]{dW^{#1}_{#2}}
+
+\newcommand{\sdeSigma}[0]{\mvector{\Sigma}}
+\newcommand{\sdeSigmaik}[2]{\Sigma_{ik}}
+
+%% SDE and RODE
+\newcommand{\probspace}[0]{(\mvector{\Omega}, \mathcal{F}, \mathbb{P})}
+
+\newcommand{\rodez}[0]{\mvector{z}(t)}
+\newcommand{\rodedz}[0]{d\rodez}
+\newcommand{\rodeo}[0]{\mvector{O}_t}
+\newcommand{\rodef}[0]{\mvector{f}(\rodez + \rodeo, \sdetheta)}
+
+%% Inference algorithms
+\newcommand{\algogmgp}[0]{GMGP}
+\newcommand{\algovgmgp}[0]{VGMGP}
+
+\newcommand{\algolpmf}[0]{LPMF}
+\newcommand{\algolpmfpos}[0]{LPMP-POS}
+\newcommand{\algolpmfsde}[0]{LPMF-SDE}
+\newcommand{\algolpmfsdef}[0]{LPMF-SDE-F}
+\newcommand{\algolpmfsdep}[0]{LPMF-SDE-P}
+
+\newcommand{\algovgpa}[0]{VGPA}
+\newcommand{\algovgpamf}[0]{VGPA-MF}
+\newcommand{\algovgpamap}[0]{VGPA-MAP}
+
+%% Protein signalling transduction pathway
+\newcommand{\proteinS}[0]{S}
+\newcommand{\proteinSdt}[0]{\dot{\proteinS}}
+
+\newcommand{\proteindS}[0]{dS}
+\newcommand{\proteindSdt}[0]{\dot{\proteindS}}
+
+\newcommand{\proteinR}[0]{R}
+\newcommand{\proteinRdt}[0]{\dot{\proteinR}}
+
+\newcommand{\proteinRS}[0]{RS}
+\newcommand{\proteinRSdt}[0]{\dot{\proteinRS}}
+
+\newcommand{\proteinRpp}[0]{Rpp}
+\newcommand{\proteinRppdt}[0]{\dot{\proteinRpp}}
+
+\newcommand{\proteinki}[1]{k_{#1}}
+\newcommand{\proteinKm}[0]{K_{m}}
+\newcommand{\proteinV}[0]{V}

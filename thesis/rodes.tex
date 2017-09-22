@@ -34,7 +34,7 @@ where $W_t$ is a one-dimensional Wiener process.
 A RODE example with multiplicative noise can be defined similarly but is not considered in this work.
 
 Following \cite{kloeden2007pathwise}, to ensure the existence of a unique solution for the initial value problem defined in \refsection{\ref{sec-odes}} on the finite time interval $[0,T]$, we typically assume that $\mvector{f}$ is arbitrarily smooth, i.e.\ it is infinitely differentiable in its variables, and thus is locally \emph{Lipschitz} in $\mvector{x}$. 
-Since the stochastic process is usually only \emph{H{\"o}lder continuous} in time, the vector field of the non-autonomous ODEs $\mvector{F}_{\mvector{\omega}}(\mvector{x}, t)$ is therefore continuous but not differentiable in time for every fixed realization of $\mvector{\omega} \in \mvector{\Omega}$.
+Since the stochastic process is usually only \emph{H{\"o}lder continuous} in time, the vector fields of the non-autonomous ODEs $\mvector{F}_{\mvector{\omega}}(\mvector{x}, t)$ are therefore continuous but not differentiable in time for every fixed realization of $\mvector{\omega} \in \mvector{\Omega}$.
 
 Because for every fixed realization of $\mvector{\omega} \in \mvector{\Omega}$, the RODEs \refequationp{\ref{eq-rodes}} turn into a deterministic ODE system \refequationp{\ref{eq-rodes-odes}}, one approach to solving the RODEs is to use sampling methods to first obtain many sample paths, and then solving each sample path deterministically.
 In order to cover the statistics of the solution, a massive number of ODEs must be solved efficiently.
@@ -68,7 +68,7 @@ Using the scalar RODE in \refequationp{\ref{eq-rodes-example}} as an example, it
     dW_t
 \end{align}
 
-Similarly, any finite dimensional SDE system can be transformed into its equivalent ODEs by utilizing the \emph{Doss-Sussmann/Imkeller-Schalfuss} \citep{sussmann1978gap, imkeller2001conjugacy} correspondence.
+Similarly, any finite dimensional SDE system can be transformed into its equivalent ODEs by utilizing the \emph{Doss-Sussmann/Imkeller-Schalfuss correspondence} \citep{sussmann1978gap, imkeller2001conjugacy}.
 Specifically, for SDE models with additive noise, the statement from \cite[\refchapter{2}]{jentzen2011taylor} is stated as the following proposition.
 \begin{proposition}
     Any finite dimensional SDE system can be transformed into an equivalent RODE system and vice versa as follows:

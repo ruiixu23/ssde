@@ -45,7 +45,7 @@ Although solving statistical inference problems involving ODEs and SDEs is usefu
 
 First, since closed-form solutions do not exist for most ODEs and not at all for SDEs, conventional methods based on explicit numerical integrations are computationally expensive, which renders them impractical even for small-sized applications.
 
-Second, the likelihood surfaces in the parameter space are likely multimodal due to nonlinearity within the dynamical systems \citep{calderhead2009accelerating}, and may exhibit many local maxima, which makes the optimization challenging.
+Second, the likelihood surfaces in the parameter space are likely multimodal due to nonlinearity within the dynamical systems \citep{calderhead2009accelerating}, and may exhibit many local maxima, which makes the parameter searching challenging.
 From a Bayesian perspective, the intractability of the marginalization term is conventionally approximated using \emph{Markov chain Monte Carlo (MCMC)} sampling schemes, which are in general very flexible but come at the cost of high computational intensity and onerous convergence analysis.
 Hence, the applicability of sampling-based approaches is largely subject to the dimensionality of the system under inference \citep{vrettas2015variational}. 
 

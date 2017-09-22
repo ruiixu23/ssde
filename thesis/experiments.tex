@@ -11,6 +11,12 @@ Then four dynamical systems with different dimensionality and complexity are use
 
 The source code of this work is implemented from the ground up using the general purpose programming language Python 3\footnote{\url{https://www.python.org/}}.
 The MATLAB\footnote{\url{https://www.mathworks.com/products/matlab.html}} code for the \algovgmgp\ algorithm from \cite{gorbach2017scalable} is used as the blueprint during implementation.
+The advantages the Python implementation includes
+\begin{itemize}
+    \item The native support of object-oriented programming makes the application interface clean and extensible. Specifically, the \texttt{Dynamical} and \texttt{Kernel} classes are implemented as abstract classes so that new dynamical systems and new kernels can be prototyped quickly.
+    \item The language is none proprietary and many Python machine learning libraries are well supported in the open-source community and are widely used in enterprise level applications.
+\end{itemize}
+
 Several important open-source packages have made this Python solution possible:
 \begin{itemize}
     \item The SciPy\footnote{\url{https://www.scipy.org/}} package provides a powerful optimization module and other I/O utilities to read and write files in MATLAB format.
@@ -175,9 +181,7 @@ Different from other dynamical models in this chapter, the state $Rpp$ and the p
 It is also a difficult benchmark system due to the large number of parameters and its sensitivity to noise.
 In this section, we use the \algolpmf\ method with positivity constraint on the parameters to run the experiment.
 
-\reftable{\ref{table-protein-setup}} shows the experimental setup. 
-Since the states flattens out towards the end, the observation time points are set to 0, 1, 2, 4, 5, 7, 10, 15, 20, 30, 40, 50, 60, 80 and 100.
-Because the observations in this experiment are required to be positive, when the noise is too big to generate negative observations, it is resampled until the positivity requirement is satisfied.
+\subsubsection*{Experimental setup}
 
 \begin{table}
 \centering
@@ -190,7 +194,9 @@ $K$ & $K_{obs}$ & $t_0$ & $t_T$ & $\delta t$ & $k_1, k_2, k_3, k_4, V, Km$ & $\d
 \end{tabular}
 \end{table}
 
-\subsubsection*{Direct inference on $Rpp$}
+\reftable{\ref{table-protein-setup}} shows the experimental setup. 
+Since the states flattens out towards the end, the observation time points are set to 0, 1, 2, 4, 5, 7, 10, 15, 20, 30, 40, 50, 60, 80 and 100.
+Because the observations in this experiment are required to be positive, when the noise is too big to generate negative observations, it is resampled until the positivity requirement is satisfied.
 
 \begin{figure}
     \centering
@@ -219,6 +225,8 @@ $K$ & $K_{obs}$ & $t_0$ & $t_T$ & $\delta t$ & $k_1, k_2, k_3, k_4, V, Km$ & $\d
     \caption{Parameter estimation results for the protein signaling transduction pathway model with the parameter $K_m$ set to constant and the state $S$ unobservable. In the box plot, the median is indicated by the red line, while the mean is shown as the green diamond. The box shows the lower and upper quartiles, while the whiskers are the 5th and 95th percentiles. The true parameter values are indicated by the blue crosses.}
     \label{fig-protein-parameters-partial-without-km}
 \end{figure}
+
+\subsubsection*{Direct inference on $Rpp$}
 
 In this experiment, the parameter $K_m$ is not inferred but all the states are directly inferred.
 This setup includes the $Rpp$ state that violates the structural assumption, which is not possible using the \algovgmgp\ method.
@@ -344,14 +352,15 @@ Moreover, as claimed by \cite{vrettas2015variational}, their  solution can also 
 Considering the sparsity of the observations and that the observation noise variances are set to 1, we see some potential for the \algolpmfsde\ solution.
 
 One shortcoming of the \algolpmfsde\ method in this experiment is that it only considers a single optimal value of the cost function found using gradient-based method when making predictions.
-Depending on the initialization conditions and the complexity of the cost function, which is subject to the complexity of drift function, sometimes the optimization procedure be trapped in a local optimum.
-As a consequence, even though the mean can be recovered reasonably well, the variance of the prediction is less under control.
-Since currently only out-of-package second-order optimization techniques such as the \emph{truncated Newton method}, the \emph{dog-leg trust-region algorithm}, etc. \citep{nocedal2006numerical}, are used, further improvement on the optimization strategy can also be considered as an extension to the current work.
+Depending on the initialization conditions and the complexity of the cost function, which is subject to the complexity of drift function, sometimes the optimization procedure can be trapped in a local optimum.
+As a consequence, even though the mean is  recovered reasonably well, the variance of the prediction is less under control.
+Since currently only out-of-package second-order optimization techniques such as the \emph{truncated Newton method}, the \emph{dog-leg trust-region algorithm}, etc. \citep{nocedal2006numerical}, are used, further improvement on the optimization strategy can also be considered as an extension to this work.
 
 \subsubsection*{Parameter estimation}
 
-This section only discusses parameter inference results using the \algolpmfsde\ method due to the lack of relevant files from the \algovgpamf\ MATLAB code as mentioned previously.
-The result for a single SDE sample path is illustrated in \reffigure{\ref{fig-lorenz-96-parameters}}, while the result from the 10 dependent repetitions is summarized in \reffigure{\ref{fig-lorenz-96-parameters-boxplot}}.
+This section only discusses parameter inference results. 
+Using the \algolpmfsde\ algorithm, the result for a single SDE sample path is illustrated in \reffigure{\ref{fig-lorenz-96-parameters}}, while the result from the 10 dependent repetitions is summarized in \reffigure{\ref{fig-lorenz-96-parameters-boxplot}}.
+Due to the lack of relevant files from the \algovgpamf\ MATLAB code as mentioned previously, grid search with a step size of 0.5 is performed on one sample path and result is shown in \reffigure{\ref{fig-lorenz-96-parameters-grid-search}}.
 
 \begin{figure}
     \centering
@@ -369,13 +378,25 @@ The result for a single SDE sample path is illustrated in \reffigure{\ref{fig-lo
     \label{fig-lorenz-96-parameters-group}    
 \end{figure}
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.48\textwidth]{graphics/lorenz-96-parameters-grid-search}
+    \caption{Grid search result using the \algovgpamf\ algorithm for the stochastic Lorenz 96 model using sample paths shown in \reffigure{\ref{fig-lorenz-96-states}}. The green dots indicate where the grid search is carried out, while the dash blue line indicates the true parameter value.}        
+    \label{fig-lorenz-96-parameters-grid-search}
+\end{figure}
+
 \reffigure{\ref{fig-lorenz-96-parameters}} shows that the estimation of the drift parameter $F$ is very close to the true value 8, and the variance is much lower in comparison to state estimation.
 This is due to the fact that the Lorenz 96 model has only one drift parameter, which appears inside the drift function for each state.
 Hence, the gradient matching model is able to obtain much more information about the drift parameter, despite the existence of unobserved states.
 \reffigure{\ref{fig-lorenz-96-parameters-boxplot}} further shows that the mean values of parameter estimation over the 10 independent repetitions are narrowly distributed.
 But in general, the \algolpmfsde\ method tends to underestimate the parameter value.
+Lastly, although \reffigure{\ref{fig-lorenz-96-parameters-grid-search}} shows that the variational free energy of the \algovgpamf\ algorithm reaches the minimum at the true parameter value, but the whole experiment took almost 36 hours to complete.
+For dynamical system with several parameters, the combinatorial nature of the parameters would render this approach impractical.
 
 \subsubsection*{Runtime performance}
+
+For the SDE sample path shown in \reffigure{\ref{fig-lorenz-96-states}}, the average runtime for the \algolpmfsde\ algorithm to solve one RODE sample path is 2309 seconds with a standard deviation of around 128 seconds, while the runtime for the \algovgpamf\ method takes 3232 seconds.
+As the current \algovgpamf\ MATLAB code only runs the state smoothing algorithm, it is expected to be much more computationally intensive when parameter estimation is carried out simultaneously, since the forward-backward loop has to be entered many times until convergence.
 
 \begin{figure}
     \centering
@@ -383,9 +404,6 @@ But in general, the \algolpmfsde\ method tends to underestimate the parameter va
     \caption{Box plot for the runtimes over 10 repetitions using independent sample paths from the stochastic Lorenz 96 model. The median is indicated by the red line, while the mean is shown as the green diamond. The box shows the lower and upper quartiles, while the whiskers are the 5th and 95th percentiles.}        
     \label{fig-lorenz-96-runtime-boxplot}
 \end{figure}
-
-For the SDE sample path shown in \reffigure{\ref{fig-lorenz-96-states}}, the average runtime for the \algolpmfsde\ algorithm to solve one RODE sample path is 2309 seconds with a standard deviation of around 128 seconds, while the runtime for the \algovgpamf\ method takes 3232 seconds.
-As the current \algovgpamf\ MATLAB code only runs the state smoothing algorithm, it is expected to be much more computationally intensive when parameter estimation is carried out simultaneously, since the forward-backward loop has to be entered many times until convergence.
 
 \reffigure{\ref{fig-lorenz-96-runtime-boxplot}} summarizes the average runtimes for \algolpmf\ to solve one RODE sample path and the runtimes for \algovgpamf\ to complete one iteration of state smoothing over the 10 independent repetitions.
 It shows that the \algolpmfsde\ solution performs consistently faster and more stably than its counterpart, as indicated by lower median runtime value and the narrower distribution.
@@ -421,6 +439,7 @@ Also, the runtime seems to increase linearly as the number of states increases.
 On the other hand, the performance of the \algolpmfsde\ method degrades much faster than \algolpmf, and the gap between them become larger as the number of states increases.
 The cause of this phenomenon requires further investigation but a plausible explanation is the complication of the optimization objective after the introduction of the stochastic process into the vector field.
 
+\vspace{\baselineskip}
 \section{Lorenz 63 model}
 \label{sec-lorenz-63}
 
@@ -507,8 +526,6 @@ Therefore, a comparison with full state observability is provided.
 But in order to demonstrate that the \algolpmfsde\ solution is capable of handling partial observations, an additional experiment is conducted by masking out the observations for state $y$.
 To distinguish the two scenarios, we use \algolpmfsdef\ and  \algolpmfsdep\ to refer to the fully and partially observable cases respectively.
 
-\subsubsection*{State estimation}
-
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{graphics/lorenz-63-states}
@@ -522,6 +539,8 @@ To distinguish the two scenarios, we use \algolpmfsdef\ and  \algolpmfsdep\ to r
     \caption{Box plot for the RMSEs of state estimation over 10 independent SDE sample paths from the stochastic Lorenz 63 model. In the box plot, the median is indicated by the red line, while the mean is shown as the green diamond. The box shows the lower and upper quartiles, while the whiskers are the 5th and 95th percentiles.}
     \label{fig-lorenz-63-state-boxplot}
 \end{figure}
+
+\subsubsection*{State estimation}
 
 The estimation for state $y$ from one SDE sample path is shown in \reffigure{\ref{fig-lorenz-63-states}}.
 Similar to the result for the stochastic Lorenz 96 model in \refsection{\ref{sec-lorenz-96}}, the general trend of the state is sucessfully captured by both methods with minor differences on the details.
@@ -563,6 +582,13 @@ On the other hand, the RMSE using \algolpmfsde\ when state $y$ is unobserved is 
     \label{fig-lorenz-63-parameters-group}
 \end{figure}
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.48\linewidth]{graphics/lorenz-63-runtime-boxplot}
+    \caption{Box plot for the runtimes over 10 repetitions using independent sample paths from the stochastic Lorenz 63 model. The median is indicated by the red line, while the mean is shown as the green diamond. The box shows the lower and upper quartiles, while the whiskers are the 5th and 95th percentiles.}
+    \label{fig-lorenz-63-runtime-boxplot}    
+\end{figure}
+
 For parameter estimation, the results are presented in \reffigure{\ref{fig-lorenz-63-parameters-group}}.
 Overall, the estimation based on both methods seem to be on par with each other with relatively low variance when all the states are observed.
 Given that the \algovgpamap\ algorithm achieves better accuracy when estimating the states, it would be expected that the parameter estimation to also be better.
@@ -575,13 +601,6 @@ This is in contrast to the other two parameters $\rho$ and $\beta$, where both s
 Lastly, the means of the predicted parameters over the 10 independent runs are generally concentrated except for parameter $\rho$ inferred by the \algovgpamap\ algorithm, as shown in \reffigure{\ref{fig-lorenz-63-parameters-sigma-boxplot}} to \reffigure{\ref{fig-lorenz-63-parameters-rho-boxplot}}.
 
 \subsubsection*{Runtime performance}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.48\linewidth]{graphics/lorenz-63-runtime-boxplot}
-    \caption{Box plot for the runtimes over 10 repetitions using independent sample paths from the stochastic Lorenz 63 model. The median is indicated by the red line, while the mean is shown as the green diamond. The box shows the lower and upper quartiles, while the whiskers are the 5th and 95th percentiles.}
-    \label{fig-lorenz-63-runtime-boxplot}    
-\end{figure}
 
 \reffigure{\ref{fig-lorenz-63-runtime-boxplot}} shows the distribution of the average time to solve one RODE sample path and the runtime of the \algovgpamap\ algorithm to infer one SDE sample path after 10 independent repetitions. 
 For each RODE sample, \algolpmfsde\ takes a fraction of the time required by \algovgpamap\ for one SDE sample path.

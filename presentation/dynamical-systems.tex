@@ -1,0 +1,80 @@
+\begin{frame}
+    \begin{center}
+        {\large Dynamical Systems}
+    \end{center}        
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Ordinary differential equations (ODEs)}
+    A $K$-dimensional real-valued ODE system is defined as
+    \begin{align}
+        \dymdx & = \frac{d\dymx}{dt} = \dymf
+    \label{eq-odes}
+    \end{align}
+    where
+    \begin{itemize}
+        \item[] $\dymx = [\mrange{\dymxktn{1}{}}{\dymxktn{K}{}}]^\top \in \R^K$ are the states at time $t$,
+        \item[] $\dymdx = [\mrange{\dymfk{1}}{\dymfk{K}}]^\top \in \R^K$ are the  state derivatives at time $t$,
+        \item[] $\dymfshort:\R^K \mapsto \R^K$ is the vector fields with parameter $\dymtheta \in \R^M$.
+    \end{itemize}
+    
+    \vspace{\baselineskip}
+    Initial states and parameters determine the future states.
+        
+    \vspace{1\baselineskip}
+    {\footnotesize
+        $\dymfshort$ may have direct dependency on $t$, which is suppressed for uncluttered notations.
+    }
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Stochastic differential equations (SDEs)}
+    Given a probability space $\probspace$, a $K$-dimensional SDE system with state-specific, additive Gaussian noises is defined, in the \emph{It\^{o}} form, as
+    \begin{align}
+        \sdedx = \sdef \sdedt + \sdeSigma^{\frac{1}{2}} \sdedwt
+        \label{eq-sdes}
+    \end{align} 
+    where
+    \begin{itemize}
+    	\item[] $\sdefshort: \R^K \mapsto \R^K$ is the deterministic drift function with parameter $\sdetheta \in \R^M$
+        \item[] $\sdeSigma = diag(\mrange{\rho_1^2}{\rho_K^2}) \in \R^{K \times K}$ is the diagonal noise covariance matrix,
+        \item[] $\sdewt \in \R^{K}$ is a standard $K$-dimensional Wiener process.
+    \end{itemize}
+    
+    \vspace{\baselineskip}
+    Each realization is most likely a different \emph{sample path}.
+    
+    \vspace{\baselineskip}
+    A class of multiplicative noise models can be mapped to this model.
+\end{frame}
+
+\begin{frame}
+    \begin{center}
+        {\large Motivation \& Challenges}
+    \end{center}        
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Motivation}
+    Dynamical systems model various natural phenomena in chemistry, physics, biology, economics, meteorology, etc. For example
+    \begin{itemize}
+        \item[-] \emph{Protein signalling transduction pathway} models the dynamics among protein species using a set of non-linear differential equations.
+        \item[-] Stochastic \emph{Lorenz 96} model is commonly used in weather forecast.
+        \item[-] Many others \dots
+    \end{itemize}
+
+    \vspace{\baselineskip}    
+    The inference algorithm should be accurate, robust and performant.
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Challenges}
+    \begin{itemize}
+        \item[-] Conventional methods requires explicit numerical integrations each time after parameter adaptation, which is slow and not scalable.
+        \item[-] The likelihood surfaces are likely to be multimodal due to nonlinearity within the dynamical systems, which makes parameter search difficult.
+        \item[-] In Bayesian statistics, the marginalization term is intractable and requires approximate inference techniques.
+        \begin{itemize}
+            \item[] \emph{Markov chain Monte Carlo (MCMC)} sampling schemes are accurate but computationally expensive and requires onerous convergence analysis.
+        \end{itemize}         
+    \end{itemize}
+\end{frame}

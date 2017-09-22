@@ -85,13 +85,14 @@ From the gradient matching model, we have
 \begin{align}
     p(\dymtheta\vert\dymY,\dymX,\dymphi,\dymgamma) 
     & \stackrel{(a)}{=} 
-    p(\dymtheta\vert,\dymX,\dymphi,\dymgamma) 
+    p(\dymtheta\vert\dymX,\dymphi,\dymgamma) 
     \nonumber
     \\
-    & \propto 
-    p(\dymtheta)\int{p(\dymdX\vert\dymX,\dymphi,\dymtheta,\dymgamma)d\dymdX}
+    & = 
+    \int{
+        p(\dymtheta) p(\dymdX\vert\dymX,\dymphi,\dymtheta,\dymgamma)d\dymdX}
     \nonumber
-    \\
+    \\     
     & \propto 
     \prod_k{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
     \label{eq-laplace-theta-objective}
@@ -100,14 +101,19 @@ where $(a)$ holds since $\dymtheta$ depends indirectly on $\dymY$ through $\dymX
 
 Similarly, for each state $\dymxk{u}$ with $u = \mrange{1}{K}$, we have
 \begin{align}
-    p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymtheta,\dymsigma,\dymgamma)
-    & = 
-    p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymsigma)
+    p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymtheta,\dymsigma,\dymgamma)  
+    & =     
     \int{
-        p(\dymdX\vert\dymxk{u},\dymXwithoutk{u},\dymphi,\dymtheta,\dymgamma)d\dymdX}
+        p(\dymxk{u}\vert\dymY,\dymXwithoutk{u},\dymphi,\dymsigma) p(\dymdX\vert\dymxk{u},\dymXwithoutk{u},\dymphi,\dymtheta,\dymgamma)d\dymdX}
     \nonumber
     \\
-    & \stackrel{(b)}{\propto}
+    & \stackrel{(b)}{=}             
+    \int{
+        p(\dymxk{u}\vert\dymyk{u},\dymphik{k},\dymsigmak{k})
+        p(\dymdX\vert\dymX,\dymphi,\dymtheta,\dymgamma)d\dymdX}
+    \nonumber
+    \\  
+    & \propto
     \mathcal{N}(\dymxk{u}\vert\dymmuk{u},\dymSigmak{u})\prod_k{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
     \label{eq-laplace-xu-objective}
 \end{align}
@@ -131,6 +137,14 @@ If we follow the same factorization assumption over the states and the parameter
 Based on \refequationp{\ref{eq-laplace-theta-objective}} and the Laplace approximation technique reviewed before, the mean of the Gaussian proxy $q(\dymtheta\vert\dymetatheta,\dymXitheta)$ can be found by
 \begin{align}
     \dymetatheta
+    & = 
+    \argmax_{\dymtheta}{
+        \ln{
+            \prod_k{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
+        }
+    }
+    \nonumber
+    \\
     & = 
     \argmax_{\dymtheta}{
         \sum_k{
@@ -164,6 +178,14 @@ The precision matrix $\dymXitheta^{-1}$ is then the Hessian of the objective fun
 Similarly, the mean of the Gaussian proxy $q(\dymxk{u}\vert\dymetaxk{u},\dymXixk{u})$ for $u = \mrange{1}{K}$ can be found using \refequationp{\ref{eq-laplace-xu-objective}} as 
 \begin{align}
     \dymetaxk{u}
+    & =     
+    \argmax_{\dymxk{u}}{
+        \ln{[
+            \mathcal{N}(\dymxk{u}\vert\dymmuk{u},\dymSigmak{u})\prod_k{\mathcal{N}(\dymfkX{k}\vert\dymmk{k},\dyminvLambdak{k})}
+        ]}
+    }
+    \nonumber
+    \\
     & =     
     \argmax_{\dymxk{u}}{[
         \ln{\mathcal{N}(\dymxk{u}\vert\dymmuk{u},\dymSigmak{u})} 
@@ -210,6 +232,8 @@ The pseudocode for the \algolpmf\ algorithm is given in \refalgorithm{\ref{algo-
         \For{$u = \mrange{1}{K}$}
             \State 
             \text{Initialize $\dymmuk{u}$, $\dymSigmak{u}$, $\dymmk{u}$ and $\dymLambdak{u}$ using Gaussian process regression}
+            \State 
+            \text{$\dymetaxk{u} = \dymmuk{u}$}
         \EndFor
         \State
         \While{\text{not converged or maximum iteration not reached}}
@@ -268,7 +292,7 @@ and
 
 Using the \emph{chain rule} and the fact that $\dymLambdak{k}$ is symmetric, for each component from the second term in $cost_{\dymxk{u}}$, the gradient is given by
 \begin{align}
-    &\nabla_{\dymxk{u}}(\dymfkXshort{k}-\dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})
+    &\nabla_{\dymxk{u}}\frac{1}{2}(\dymfkXshort{k}-\dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})
     \nonumber
     \\
     = & 
@@ -344,11 +368,11 @@ Since the states do not appear inside the vector field across time points, the f
 If the $\dymfkXshort{k}$ is independent of $\dymxk{u}$, then this matrix is a zero matrix.
 Since $\dymmk{k} = \dymdCdphik{k}\dyminvCphik{k}\dymxk{k}$ is a linear combination of $\dymxk{k}$, the second matrix is the transpose of $\dymdCdphik{k}\dyminvCphik{k}$ if $k = u$ and is a zero matrix otherwise.
 
-The Hessian of $(\dymfkXshort{k}-\dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})$ w.r.t.\ $\dymxk{u}$ also exhibits such sparse structure.
+The Hessian of $\frac{1}{2}(\dymfkXshort{k}-\dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})$ w.r.t.\ $\dymxk{u}$ also exhibits such sparse structure.
 In brief, the $(i, j)$-th entry of the Hessian is given by
 \begin{align}
     &\frac{
-        \partial^{2}(\dymfkXshort{k}-\dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})}{
+        \partial^{2}\frac{1}{2}(\dymfkXshort{k}-\dymmk{k})^T\dymLambdak{k}(\dymfkXshort{k}-\dymmk{k})}{
         \partial\dymxktn{u}{i}\partial\dymxktn{u}{j}}
     \nonumber
     \\
@@ -428,14 +452,22 @@ Because the exponential function is monotonic, we can therefore first find $\dym
 and then exponentiate it element-wise to obtain an estimation for $\dymtheta^* = [\mrange{e^{\dymthetatildem{1}^*}}{e^{\dymthetatildem{M}^*}}]^\top$, which would correspond to the configuration that minimizes the original $cost_{\dymtheta}$.
 Since $e^r > 0$ for any $r \in \R$, we essentially restrict $\dymtheta^*$ to only contain positive values.
 
-Analogously, the positivity constraint on states can be achieved by transforming the cost function $cost_{\dymxk{u}}$ into its equivalent $cost_{\dymxtildek{u}}$, where we define $\dymxk{u} = [\mrange{e^{\dymxtildexktn{u}{1}}}{e^{\dymxtildexktn{u}{N}}}]^\top$ for $u = \mrange{1}{K}$.
-Using the chain rule, the vector field after the transformation is given by
+Analogously, the positivity constraint on states can be achieved by transforming the cost function $cost_{\dymxk{u}}$ to its equivalent $cost_{\dymxtildek{u}}$, where we define $\dymxk{u} = [\mrange{\dymxktn{u}{1}}{\dymxktn{u}{N}}]^\top = [\mrange{e^{\dymxtildexktn{u}{1}}}{e^{\dymxtildexktn{u}{N}}}]^\top$ for $u = \mrange{1}{K}$.
+Using the chain rule, we have for $u = \mrange{1}{K}$ and $n = \mrange{1}{N}$ the following:
 \begin{align}
-    \frac{d\mvector{\widetilde{x}}(t)}{dt}
-    =  
+    \frac{d\widetilde{x}_{u}(t_n)}{dt}
+    & =
+    \frac{d\ln{{x}_{u}(t_n)}}{dt}
+    \nonumber
+    \\
+    & =
+    \frac{1}{{x}_{u}(t_n)}\frac{d{x}_{u}(t_n)}{dt}
+    \nonumber
+    \\
+    & =  
     \frac{
-        \mvector{f}(
-        e^{\mvector{\widetilde{x}}(t)}, \dymtheta)}{e^{\mvector{\widetilde{x}}(t)}}
+        f_{u}(
+        e^{\mvector{\widetilde{x}}(t_n)}, \dymtheta)}{e^{\widetilde{x}(t_n)}}
 \end{align}
 Note that the application of the positivity constraint on states is flexible in the sense that not all the states are required to be constrained at the same time.
 Also, the constraint can theoretically be applied to both the parameters and the states at the same time.

@@ -33,7 +33,7 @@ The above description can be succinctly written in matrix notation as
     \dymY = \dymX + \dymE
     \nonumber
 \end{align}
-where $\dymY$ and $\dymX$ are defined before, and $E = [\mrange{\dymepsilontn{1}}{\dymepsilontn{N}}] \in \R^{K \times N}$.
+where $\dymY$ and $\dymX$ are defined before, and $\dymE = [\mrange{\dymepsilontn{1}}{\dymepsilontn{N}}] \in \R^{K \times N}$.
 
 For simplicity, we assume that the observation noises $\dymepsilontn{n}$ at each time point are additive and state specific. 
 Moreover, they follow an \emph{independent and identically distributed (i.i.d.)} multivariate Gaussian distribution with zero mean and a diagonal covariance matrix across all time points, i.e.\ $\dymepsilon_{(\cdot)} \sim \mathcal{N}(\mvector{0}, \mvector{D})$, where $D_{ik} = \delta(i,k)\dymsigmak{k}^2$ for $i, k = \mrange{1}{K}$, $\delta$ is the \emph{Kronecker delta} function, and $\dymsigmak{k}^2$ is the variance of the observation noise for state $k$. 
@@ -49,7 +49,7 @@ With the above noise assumption and notations, we have
     \label{eq-ode-noise-model}        
 \end{align}
 
-Note that the discussion within this work can be generalized to  cases where only combinations of states are observed such that $\dymY = \mvector{H}\dymX + \dymE$, where $\mvector{H}$ describes the relationship between the states and the observations.
+Note that the discussion within this work can be generalized to cases where only combinations of states are observed such that $\dymY = \mvector{H}\dymX + \dymE$, where $\mvector{H}$ describes the relationship between the states and the observations.
 In order to simplify the notation, we assume that $\mvector{H}$ is equal to the identity matrix $\mvector{I}$.
 Furthermore, handling of the cases where some states are not observed is also possible and will be presented in the relevant sections later.
 
@@ -90,7 +90,7 @@ Skipping over the details of stochastic calculus, here we give an intuitive unde
     \sqrt{\Delta t \sdeSigma} \mvector{\epsilon}_{t_n}
     \label{eq-sdes-euler-maruyama}
 \end{align}
-where $\Delta t$ denotes the time increment and ${\mvector{\epsilon}}_{t_n}$ is a standard multivariate Gaussian random vectors, i.e.\ ${\mvector{\epsilon}}_{t_n} \sim \mathcal{N}(\mvector{0}, \mvector{I})$.
+where $\Delta t = t_{n+1} - t_{n}$ denotes the time increment and ${\mvector{\epsilon}}_{t_n}$ is a standard multivariate Gaussian random vectors, i.e.\ ${\mvector{\epsilon}}_{t_n} \sim \mathcal{N}(\mvector{0}, \mvector{I})$.
 The SDEs in \refequationp{\ref{eq-sdes}} can be considered as the limit of the process described by \refequationp{\ref{eq-sdes-euler-maruyama}} \citep{archambeau2007gaussian}.
 
 Without redundancy, the noisy observation model and the notations introduced previously in \refsection{\ref{sec-odes}} can be directly applied to the SDE models in the rest of this text.

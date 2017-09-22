@@ -1,0 +1,61 @@
+% !TEX TS-program = pdflatex
+% !TeX encoding = UTF-8
+% !TeX spellcheck = en_GB
+
+%\documentclass[aspectratio=43]{beamer}
+% use this instead for 16:9 aspect ratio:
+%\documentclass[aspectratio=169]{beamer}
+% supported acpect ratios  1610  169 149 54 43 (deault) 32
+%
+\documentclass[aspectratio=1610]{beamer}
+\usepackage[american]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[OT1]{fontenc}
+\usepackage{amsmath,amssymb,amsfonts,mathrsfs}
+\usepackage{graphicx}
+\usepackage[font={small,sf},labelfont=bf]{caption}
+\usepackage[font={scriptsize,sf}]{subcaption}
+\usepackage{color}
+\usepackage{varioref}
+\usepackage{mathtools}
+\usepackage{array}
+\usepackage{algorithm}
+\usepackage[]{algpseudocode}
+\usepackage[sc]{mathpazo}
+\usepackage{graphicx}
+\usepackage[font={small,sf},labelfont=bf]{caption}
+\usepackage[font={scriptsize,sf}]{subcaption}
+\usefonttheme{professionalfonts}
+\usetheme{ETHbeamer}
+
+\input{macrosetup}
+
+\colorlet{ETHcolor1}{ETHc}
+\colorlet{ETHcolor2}{ETHh}
+
+%\author{Ruifeng Xu}
+
+\title{Scalable Variational Inference for Stochastic Differential Equations}
+
+\date{}
+
+% uncomment if you do not want to use a department logo
+%\deplogofalse
+
+\begin{document}
+
+\setlength{\abovedisplayskip}{4pt}
+\setlength{\belowdisplayskip}{2pt}
+\setlength{\abovedisplayshortskip}{4pt}
+\setlength{\belowdisplayshortskip}{2pt}
+
+\input{intro}
+\input{dynamical-systems}
+\input{graident-matching}
+\input{laplace-mean-field}
+\input{sde}
+\input{experiments}
+\input{conclusion}
+%\input{preliminary}
+
+\end{document}

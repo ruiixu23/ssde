@@ -1,0 +1,82 @@
+\begin{frame}[t]
+    \frametitle{Preliminary: Gaussian process regression}
+    A \emph{Gaussian process (GP)} is a collection of random variables such that any finite subset of it forms a multivariate Gaussian distribution.
+    
+    \vspace{\baselineskip}
+    \textbf{GP regression}
+    \begin{itemize}
+        \item A nonparametric, kernel-based Bayesian regression technique.
+        \item In application, 
+        \begin{itemize}
+            \item Specify a GP prior on the regression function.
+            \item Convert the prior into posterior after observing data to make prediction.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Preliminary: Gaussian process regression}    
+    The GP prior on $f$ is denoted as
+    \begin{align}
+        f(\mvector{x}{}) & \sim \mathcal{GP}(m(\mvector{x}),\ k(\mvector{x},\ \mvector{x}^\prime)) 
+        \label{eq-gp}
+        \\
+        \intertext{where}
+        m(\mvector{x}) &= \mathbb{E}[f(\mvector{x})]
+        \nonumber
+        \\  		
+        k(\mvector{x}, \mvector{x}^\prime) &= \mathbb{E}[(f(\mvector{x}) - m(\mvector{x}))(f(\mvector{x}^\prime) - m(\mvector{x}^\prime))]
+        \nonumber
+    \end{align}    
+    
+    \vspace{\baselineskip}
+    For any finite collection $\mdata{X} = \{\mvector{x}_i \in \R^D \vert i=\mrange{1}{N}\}$, we have
+    \begin{align}
+        \mdata{f} \vert \mdata{X} \sim \mathcal{N}(\mdata{m},\ \mdata{K}(\mdata{X},\ \mdata{X}))        
+    \end{align}
+    where $\mathrm{f}_i = f(\mvector{x}_i)$, $\mathrm{m}_i = m(\mvector{x}_i)$, and $\mathrm{K}_{ij} = k(\mvector{x}_i, \mvector{x}_j)$ for $i, j=\mrange{1}{N}$.
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Preliminary: Gaussian process regression}
+    Assuming i.i.d.\ additive white Gaussian noise $\epsilon \sim \mathcal{N}(0, \sigma^2)$ such that $y_i = f(\mvector{x}_i) + \epsilon_i$ for $i=\mrange{1}{N}$, for any finite collection $\mdata{X}^* = \{\mvector{x}^*_i \in \R^D \vert i=\mrange{1}{M}\}$:
+    \begin{align}
+        \begin{bmatrix}
+            \mdata{y} 
+            \\ 
+            \mdata{f}^*
+        \end{bmatrix}
+        \sim 
+        \mathcal{N}(
+            \begin{bmatrix}
+                \mdata{m} 
+                \\ 
+                \mdata{m}^*
+            \end{bmatrix}
+            ,
+            \begin{bmatrix}
+                \mdata{K}(\mdata{X}, \mdata{X}) + \sigma^2\mI 
+                    & \mdata{K}(\mdata{X}, \mdata{X}^*) 
+                \\ 
+                \mdata{K}(\mdata{X}^*, \mdata{X}) 
+                    & \mdata{K}(\mdata{X}^*, \mdata{X}^*)
+            \end{bmatrix}
+        )
+    \end{align}
+    
+    \vspace{\baselineskip}
+    The noise-free posterior on $\mdata{f}^*$ is then 
+    \begin{align}
+        \mdata{f}^* \vert \mdata{X},\mdata{y},\sigma,\mdata{X}^*
+        \sim
+        \mathcal{N}(
+            & \mdata{m}^* 
+            + \mdata{K}(\mdata{X}^*, \mdata{X})[\mdata{K}(\mdata{X}, \mdata{X}) + \sigma^2\mI]^{-1}(\mdata{y} - \mdata{m}),
+            \nonumber
+            \label{eq-gp-posterior}
+            \\        
+            & \mdata{K}(\mdata{X}^*, \mdata{X}^*) 
+            - \mdata{K}(\mdata{X}^*, \mdata{X})[\mdata{K}(\mdata{X}, \mdata{X}) + \sigma^2\mI]^{-1}\mdata{K}(\mdata{X}, \mdata{X}^*)
+        )
+    \end{align}
+\end{frame}
