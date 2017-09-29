@@ -584,6 +584,13 @@ On the other hand, the RMSE using \algolpmfsde\ when state $y$ is unobserved is 
 
 \begin{figure}
     \centering
+    \includegraphics[width=\linewidth]{graphics/lorenz-63-parameters-grid-search}
+    \caption{Grid search result using the \algovgpa\ algorithm for the stochastic Lorenz 63 model. The green dots indicate where the grid search is carried out, while the dash blue line indicates the true parameter value. The color map shows the existence of local minima when varying the parameters $\beta$ and $\rho$ together.}
+    \label{fig-lorenz-63-parameters-grid-search}    
+\end{figure}
+
+\begin{figure}
+    \centering
     \includegraphics[width=0.48\linewidth]{graphics/lorenz-63-runtime-boxplot}
     \caption{Box plot for the runtimes over 10 repetitions using independent sample paths from the stochastic Lorenz 63 model. The median is indicated by the red line, while the mean is shown as the green diamond. The box shows the lower and upper quartiles, while the whiskers are the 5th and 95th percentiles.}
     \label{fig-lorenz-63-runtime-boxplot}    
@@ -599,6 +606,13 @@ To explain this, first note that $\sigma$ appears only inside the first equation
 Since $y$ is not observable, the only source of information to estimate $\sigma$ is  $x$.
 This is in contrast to the other two parameters $\rho$ and $\beta$, where both states $x$ and $z$ are used to estimate them.
 Lastly, the means of the predicted parameters over the 10 independent runs are generally concentrated except for parameter $\rho$ inferred by the \algovgpamap\ algorithm, as shown in \reffigure{\ref{fig-lorenz-63-parameters-sigma-boxplot}} to \reffigure{\ref{fig-lorenz-63-parameters-rho-boxplot}}.
+
+To further illustrate the difficulty of parameter estimation, grid search on the parameters is conducted using the original \algovgpa\ method.
+Specifically, the step size used for the grid search is 0.5. 
+The ranges for the searches for $\sigma, \rho, \beta$ are $[6, 16]$, $[24, 34]$ and $[1, 4]$ respectively.
+Using the first plot in \reffigure{\ref{fig-lorenz-63-parameters-grid-search}} as an example, the changes in the variational free energy is plotted as the parameter $\sigma$ changes while the other two parameters are kept at the true values.
+It can be seen that the parameter value that leads to the minimum of the variational free energy deviates from the true parameter values.
+Moreover, the last plot in \reffigure{\ref{fig-lorenz-63-parameters-grid-search}} shows the existence of many local minima as we vary two parameters together, which makes parameter estimation based on grid search difficult.
 
 \subsubsection*{Runtime performance}
 
